@@ -1,0 +1,24 @@
+{
+  "conclusion": "business_rejected",
+  "expected_source": "/workspace/copybook-decoder/examples/audit/run/data/handoff_good.dat",
+  "expected_lines": 9,
+  "file_rejected": false,
+  "file_checks": {"fhead_line": 1, "ftail_line": 9, "file_id": {"fhead": "F-2024-001", "ftail": "F-2024-001", "ok": true}, "batch_count": {"declared": "2", "actual": 2, "ok": true}, "detail_count": {"declared": "3", "actual": 3, "ok": true}},
+  "batches": [
+    {"ordinal": 1, "batch_id": "BAT-01", "status": "rejected", "bhead_line": 2, "btail_line": 4, "detail_count": {"declared": "1", "actual": 1, "ok": true}, "quantity_check": {"status": "undecidable", "undecidable_reason": "1 quarantined detail position(s) hide their category and quantity; category totals cannot be decided (not treated as zero). Their physical line numbers are listed in this batch's quarantined_detail diagnostics"}, "category_totals": [{"category": "AAA", "declared": "0.000", "declared_milli": 0, "actual": null, "actual_milli": null, "ok": null, "undecidable": true, "undecidable_reason": "1 quarantined detail position(s) hide their category and quantity; category totals cannot be decided (not treated as zero). Their physical line numbers are listed in this batch's quarantined_detail diagnostics"}, {"category": "BBB", "declared": "0.000", "declared_milli": 0, "actual": null, "actual_milli": null, "ok": null, "undecidable": true, "undecidable_reason": "1 quarantined detail position(s) hide their category and quantity; category totals cannot be decided (not treated as zero). Their physical line numbers are listed in this batch's quarantined_detail diagnostics"}], "received_detail_positions": 1, "quarantine_line_count": 1, "diagnostic_count": 1, "diagnostics": [{"code": "quarantined_detail", "message": "batch contains a quarantined physical line; the detail position was received but its business values are unknown", "line_number": 3, "byte_start": 148, "byte_end": 189, "detail": {"quarantine_reason": "truncated"}}], "diagnostics_truncated": false},
+    {"ordinal": 2, "batch_id": "BAT-02", "status": "accepted", "bhead_line": 5, "btail_line": 8, "detail_count": {"declared": "2", "actual": 2, "ok": true}, "quantity_check": {"status": "ok", "undecidable_reason": null}, "category_totals": [{"category": "AAA", "declared": "2.500", "declared_milli": 2500, "actual": "2.500", "actual_milli": 2500, "ok": 1, "undecidable": false, "undecidable_reason": null}, {"category": "BBB", "declared": "-1.250", "declared_milli": -1250, "actual": "-1.250", "actual_milli": -1250, "ok": 1, "undecidable": false, "undecidable_reason": null}], "received_detail_positions": 2, "quarantine_line_count": 0, "diagnostic_count": 0, "diagnostics": [], "diagnostics_truncated": false}
+  ],
+  "accepted_detail_line_numbers": [
+    6,
+    7
+  ],
+  "quarantine_lines": [
+    {"line_number": 3, "byte_start": 148, "byte_end": 189, "ordinal": 1, "reason": "truncated"}
+  ],
+  "file_diagnostics": [],
+  "file_diagnostic_count": 0,
+  "accepted_details_file": "accepted_details.jsonl",
+  "accepted_detail_count": 2,
+  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 15524},
+  "output_dir": "/workspace/copybook-decoder/examples/audit/run/handoff_good/delivery"
+}

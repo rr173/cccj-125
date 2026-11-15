@@ -1,0 +1,18 @@
+{
+  "categories": ["AAA", "BBB"],
+  "paths": {
+    "record_type": ["REC-TYPE"],
+    "file_id": ["FILE-ID"],
+    "batch_id": ["BATCH-ID"],
+    "seq": ["SEQ-NUM"],
+    "category": ["CATEGORY"],
+    "quantity": ["QUANTITY"],
+    "btail_detail_count": ["DETAIL-COUNT"],
+    "btail_totals": {
+      "AAA": ["TOTAL-AAA"],
+      "BBB": ["TOTAL-BBB"]
+    },
+    "ftail_batch_count": ["BATCH-COUNT"],
+    "ftail_detail_count": ["DETAIL-COUNT"]
+  }
+}

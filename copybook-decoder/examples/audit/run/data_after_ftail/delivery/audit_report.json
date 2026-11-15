@@ -1,0 +1,20 @@
+{
+  "conclusion": "business_rejected",
+  "expected_source": "/workspace/copybook-decoder/examples/audit/run/data/data_after_ftail.dat",
+  "expected_lines": 5,
+  "file_rejected": true,
+  "file_checks": {"fhead_line": 1, "ftail_line": 4, "file_id": {"fhead": "F-AFTER", "ftail": "F-AFTER", "ok": true}, "batch_count": {"declared": "1", "actual": 1, "ok": true}, "detail_count": {"declared": "0", "actual": 0, "ok": true}},
+  "batches": [
+    {"ordinal": 1, "batch_id": "AB-1", "status": "accepted", "bhead_line": 2, "btail_line": 3, "detail_count": {"declared": "0", "actual": 0, "ok": true}, "quantity_check": {"status": "ok", "undecidable_reason": null}, "category_totals": [{"category": "AAA", "declared": "0.000", "declared_milli": 0, "actual": "0.000", "actual_milli": 0, "ok": 1, "undecidable": false, "undecidable_reason": null}, {"category": "BBB", "declared": "0.000", "declared_milli": 0, "actual": "0.000", "actual_milli": 0, "ok": 1, "undecidable": false, "undecidable_reason": null}], "received_detail_positions": 0, "quarantine_line_count": 0, "diagnostic_count": 0, "diagnostics": [], "diagnostics_truncated": false}
+  ],
+  "accepted_detail_line_numbers": [],
+  "quarantine_lines": [],
+  "file_diagnostics": [
+    {"code": "data_after_ftail", "message": "no evidence is allowed after the unique FTAIL record", "line_number": 5, "byte_start": 296, "byte_end": 369, "detail": {"kind": "record"}}
+  ],
+  "file_diagnostic_count": 1,
+  "accepted_details_file": "accepted_details.jsonl",
+  "accepted_detail_count": 0,
+  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 15504},
+  "output_dir": "/workspace/copybook-decoder/examples/audit/run/data_after_ftail/delivery"
+}

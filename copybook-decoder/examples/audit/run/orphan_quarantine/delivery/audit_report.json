@@ -1,0 +1,20 @@
+{
+  "conclusion": "business_rejected",
+  "expected_source": "/workspace/copybook-decoder/examples/audit/run/data/orphan_quarantine.dat",
+  "expected_lines": 3,
+  "file_rejected": true,
+  "file_checks": {"fhead_line": 1, "ftail_line": 3, "file_id": {"fhead": "F-ORPHAN", "ftail": "F-ORPHAN", "ok": true}, "batch_count": {"declared": "0", "actual": 0, "ok": true}, "detail_count": {"declared": "0", "actual": 0, "ok": true}},
+  "batches": [],
+  "accepted_detail_line_numbers": [],
+  "quarantine_lines": [
+    {"line_number": 2, "byte_start": 74, "byte_end": 115, "ordinal": null, "reason": "truncated"}
+  ],
+  "file_diagnostics": [
+    {"code": "orphan_quarantine", "message": "quarantined physical line appears outside any batch; its business values can never be reconciled", "line_number": 2, "byte_start": 74, "byte_end": 115, "detail": {"quarantine_reason": "truncated"}}
+  ],
+  "file_diagnostic_count": 1,
+  "accepted_details_file": "accepted_details.jsonl",
+  "accepted_detail_count": 0,
+  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 15376},
+  "output_dir": "/workspace/copybook-decoder/examples/audit/run/orphan_quarantine/delivery"
+}

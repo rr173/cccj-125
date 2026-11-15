@@ -1,0 +1,12 @@
+{
+  "layouts": [
+    {
+      "sender": "BANKX",
+      "copybook": "HANDOFF",
+      "version": "1",
+      "effective_from": "2024-01-01",
+      "file": "copybooks/HANDOFF-1.cpy",
+      "codec": "cp037"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "conclusion": "business_rejected",
+  "expected_source": "/workspace/copybook-decoder/examples/audit/run/data/duplicate_batch.dat",
+  "expected_lines": 8,
+  "file_rejected": true,
+  "file_checks": {"fhead_line": 1, "ftail_line": 8, "file_id": {"fhead": "F-DUP", "ftail": "F-DUP", "ok": true}, "batch_count": {"declared": "2", "actual": 2, "ok": true}, "detail_count": {"declared": "2", "actual": 2, "ok": true}},
+  "batches": [
+    {"ordinal": 1, "batch_id": "DUP", "status": "accepted", "bhead_line": 2, "btail_line": 4, "detail_count": {"declared": "1", "actual": 1, "ok": true}, "quantity_check": {"status": "ok", "undecidable_reason": null}, "category_totals": [{"category": "AAA", "declared": "1.000", "declared_milli": 1000, "actual": "1.000", "actual_milli": 1000, "ok": 1, "undecidable": false, "undecidable_reason": null}, {"category": "BBB", "declared": "0.000", "declared_milli": 0, "actual": "0.000", "actual_milli": 0, "ok": 1, "undecidable": false, "undecidable_reason": null}], "received_detail_positions": 1, "quarantine_line_count": 0, "diagnostic_count": 0, "diagnostics": [], "diagnostics_truncated": false},
+    {"ordinal": 2, "batch_id": "DUP", "status": "accepted", "bhead_line": 5, "btail_line": 7, "detail_count": {"declared": "1", "actual": 1, "ok": true}, "quantity_check": {"status": "ok", "undecidable_reason": null}, "category_totals": [{"category": "AAA", "declared": "0.000", "declared_milli": 0, "actual": "0.000", "actual_milli": 0, "ok": 1, "undecidable": false, "undecidable_reason": null}, {"category": "BBB", "declared": "2.000", "declared_milli": 2000, "actual": "2.000", "actual_milli": 2000, "ok": 1, "undecidable": false, "undecidable_reason": null}], "received_detail_positions": 1, "quarantine_line_count": 0, "diagnostic_count": 0, "diagnostics": [], "diagnostics_truncated": false}
+  ],
+  "accepted_detail_line_numbers": [],
+  "quarantine_lines": [],
+  "file_diagnostics": [
+    {"code": "duplicate_batch_id", "message": "batch_id 'DUP' already appeared at line 2; batch ids must be unique within the file", "line_number": 5, "byte_start": 296, "byte_end": 369, "detail": {"previous_bhead_line": 2}}
+  ],
+  "file_diagnostic_count": 1,
+  "accepted_details_file": "accepted_details.jsonl",
+  "accepted_detail_count": 0,
+  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 15540},
+  "output_dir": "/workspace/copybook-decoder/examples/audit/run/duplicate_batch/delivery"
+}
