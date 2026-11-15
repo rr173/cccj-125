@@ -39,7 +39,13 @@ copybook/            解码器包
     graph.py         全 ref 可达提交图与拓扑序、tree 遍历
     diff.py          按完整路径对每个 parent 的变化
     handoff.py       事实目录交付、单 blob 导出与导出清单
+  relation/          多表交接的关系准入加工：最大相互支持保留集 + 拒收证明
+    config.py        引用契约（表/字段/候选键/引用）与带类型键元组编码
+    loading.py       流式 JSONL 载入、meta/身份/重复成员校验、第 0 层局部诊断
+    engine.py        半朴素批量固定点消除（SQLite 落盘、有界批次、证明与见证）
+    query.py         仅凭交付目录解释一行、读证明节点、逐表读取获准行
   __main__.py        CLI（decode / audit / impact / mask / settle / trace /
+                     admit / admit-explain / admit-table /
                      git-ingest / git-export / git-query）
 examples/            示例 Copybook、清单、数据生成器、交接场景、影响报告场景、
                      脱敏场景、Git 交接演示与压测
@@ -74,6 +80,28 @@ for q in result.quarantined:        # QuarantinedLine
 result.export_quarantine("quarantine/")
 result.write_jsonl("records.jsonl")
 ```
+
+## 多表关系准入（admit）
+
+`relation` 子包回答一次离线交接的质量问题：给定几张已解码表（标准
+`meta`/`fields` JSONL，一表可有多份文件）和引用契约，哪些记录彼此仍有
+足够引用支持可以入仓，其余记录为何最终失去资格。结果是“满足全部引用的
+最大保留集”：闭合引用环整体保留、不挑锚点、不为消环任意删行；先剔除局部
+错误行（第 0 层），再按同步轮次反复剔除失去父候选的行，并为每条连锁拒收
+保存可独立检查、层数严格递减、节点共享（不指数展开）的证明。
+
+```bash
+python3 examples/relation/run_scenarios.py     # 真实接到 decode 产物的完整场景
+python3 -m copybook admit --contract contract.json \
+    --out-dir delivery/ --temp-dir staging/
+python3 -m copybook admit-explain delivery/ transactions T003   # 见证或拒收证明
+python3 -m copybook admit-table delivery/ transactions          # 逐表读获准行
+```
+
+退出码：`0` 全部准入；`1` 完成质量检查但有拒收（交付目录与 `COMPLETE.json`
+仍生成）；`2` 身份/契约/坏 JSON 等结构错误，无法处理且不留下可被当成完成的
+交付。所有记录、业务键、引用与证明边都落在交付目录内的 SQLite，重开进程无需
+原输入文件；见 `examples/relation/README.md`。
 
 ## 支持的 Copybook 子集
 

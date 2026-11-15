@@ -1,0 +1,225 @@
+{
+  "tables": [
+    {
+      "name": "accounts",
+      "files": [
+        "/workspace/copybook-decoder/examples/relation/run/input/accounts.jsonl"
+      ],
+      "row_id_path": [
+        "ACCT-ID"
+      ],
+      "fields": {
+        "acct_id": {
+          "path": [
+            "ACCT-ID"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "path": [
+            "ACCT-NAME"
+          ],
+          "type": "string"
+        },
+        "balance": {
+          "path": [
+            "BALANCE"
+          ],
+          "type": "string"
+        },
+        "txn_date": {
+          "path": [
+            "LAST-TXN-DATE"
+          ],
+          "type": "integer"
+        },
+        "region": {
+          "path": [
+            "REGION"
+          ],
+          "type": "string",
+          "nullable": true
+        },
+        "branch_id": {
+          "path": [
+            "BRANCH-ID"
+          ],
+          "type": "string",
+          "nullable": true
+        },
+        "gone_key": {
+          "path": [
+            "GONE-KEY"
+          ],
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "candidate_keys": {
+        "k_acct": [
+          "acct_id"
+        ]
+      },
+      "references": [
+        {
+          "name": "r_gone",
+          "columns": [
+            "gone_key"
+          ],
+          "target_table": "terminated",
+          "target_key": "k_term",
+          "rule": "mandatory"
+        }
+      ]
+    },
+    {
+      "name": "branches",
+      "files": [
+        "/workspace/copybook-decoder/examples/relation/run/input/branches.jsonl"
+      ],
+      "row_id_path": [
+        "BRANCH-ID"
+      ],
+      "fields": {
+        "branch_id": {
+          "path": [
+            "BRANCH-ID"
+          ],
+          "type": "string"
+        },
+        "region": {
+          "path": [
+            "REGION"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "path": [
+            "NAME"
+          ],
+          "type": "string"
+        },
+        "parent": {
+          "path": [
+            "PARENT"
+          ],
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "candidate_keys": {
+        "k_branch": [
+          "branch_id",
+          "region"
+        ],
+        "k_branch_s": [
+          "branch_id"
+        ]
+      },
+      "references": [
+        {
+          "name": "r_parent",
+          "columns": [
+            "parent"
+          ],
+          "target_table": "branches",
+          "target_key": "k_branch_s",
+          "rule": "mandatory"
+        }
+      ]
+    },
+    {
+      "name": "transactions",
+      "files": [
+        "/workspace/copybook-decoder/examples/relation/run/input/txns.part1.jsonl",
+        "/workspace/copybook-decoder/examples/relation/run/input/txns.part2.jsonl"
+      ],
+      "row_id_path": [
+        "TXN-ID"
+      ],
+      "fields": {
+        "txn_id": {
+          "path": [
+            "TXN-ID"
+          ],
+          "type": "string"
+        },
+        "acct": {
+          "path": [
+            "TXN-ACCT"
+          ],
+          "type": "string"
+        },
+        "branch": {
+          "path": [
+            "TXN-BRANCH"
+          ],
+          "type": "string",
+          "nullable": true
+        },
+        "region": {
+          "path": [
+            "REGION"
+          ],
+          "type": "string",
+          "nullable": true
+        },
+        "amount": {
+          "path": [
+            "AMOUNT"
+          ],
+          "type": "integer"
+        }
+      },
+      "candidate_keys": {
+        "k_txn": [
+          "txn_id"
+        ]
+      },
+      "references": [
+        {
+          "name": "r_acct",
+          "columns": [
+            "acct"
+          ],
+          "target_table": "accounts",
+          "target_key": "k_acct",
+          "rule": "mandatory"
+        },
+        {
+          "name": "r_branch",
+          "columns": [
+            "branch",
+            "region"
+          ],
+          "target_table": "branches",
+          "target_key": "k_branch",
+          "rule": "optional"
+        }
+      ]
+    },
+    {
+      "name": "terminated",
+      "files": [
+        "/workspace/copybook-decoder/examples/relation/run/input/terminated.jsonl"
+      ],
+      "row_id_path": [
+        "TERM-ID"
+      ],
+      "fields": {
+        "term_id": {
+          "path": [
+            "TERM-ID"
+          ],
+          "type": "string"
+        }
+      },
+      "candidate_keys": {
+        "k_term": [
+          "term_id"
+        ]
+      },
+      "references": []
+    }
+  ]
+}

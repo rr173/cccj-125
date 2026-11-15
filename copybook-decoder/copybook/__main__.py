@@ -21,6 +21,11 @@ from .impact import (COMPATIBLE, INCOMPATIBLE, ImpactError,
 from .manifest import Manifest
 from .mask import MaskError, MaskKey, MaskPolicy, run_mask
 from .pipeline import decode_file
+from .relation import (EXIT_BUSINESS_REJECT as EXIT_ADMIT_REJECT,
+                      EXIT_CANNOT_PROCESS as EXIT_ADMIT_FAILED)
+from .relation import (RelationConfigError, RelationInputError,
+                      RelationQueryError, RelationContract)
+from .relation import explain_row, get_proof_node, iter_kept_rows, run_admission
 from .settle import (EXIT_BUSINESS_REJECT as EXIT_SETTLE_REJECT,
                      EXIT_CANNOT_PROCESS as EXIT_SETTLE_FAILED)
 from .settle import (SettleConfig, SettleConfigError, SettleInputError,
@@ -153,6 +158,41 @@ def main(argv=None) -> int:
                      help="disambiguate when the id exists in both "
                           "namespaces")
 
+    adm = sub.add_parser(
+        "admit",
+        help="relational admission: keep the greatest set of records "
+             "mutually supported by the reference contract, with checkable "
+             "rejection proofs")
+    adm.add_argument("--contract", required=True,
+                     help="reference contract JSON: tables, files, "
+                          "row_id_path, fields, candidate_keys, references")
+    adm.add_argument("--out-dir", required=True,
+                     help="new result directory (must not exist yet)")
+    adm.add_argument("--temp-dir", required=True,
+                     help="base directory for SQLite disk staging; only the "
+                          "unique subdirectory created for this run is "
+                          "cleaned up")
+
+    aex = sub.add_parser(
+        "admit-explain",
+        help="explain one row's kept witnesses or rejection proof from a "
+             "delivered admission result, without any original input files")
+    aex.add_argument("result_dir",
+                     help="admission output directory produced by 'admit'")
+    aex.add_argument("table", help="logical table name")
+    aex.add_argument("row_id", help="the row_id to explain")
+    aex.add_argument("--proof-id", type=int, default=None,
+                     help="print one shared proof node by id instead of "
+                          "the row explanation")
+
+    atb = sub.add_parser(
+        "admit-table",
+        help="stream the admitted rows of one table from a delivered "
+             "admission result in row_id UTF-8 byte order")
+    atb.add_argument("result_dir",
+                     help="admission output directory produced by 'admit'")
+    atb.add_argument("table", help="logical table name")
+
     git = sub.add_parser(
         "git-ingest",
         help="verify a self-contained Git bundle v2 offline and write its "
@@ -217,6 +257,12 @@ def main(argv=None) -> int:
         return _run_settle(args)
     if args.command == "trace":
         return _run_trace(args)
+    if args.command == "admit":
+        return _run_admit(args)
+    if args.command == "admit-explain":
+        return _run_admit_explain(args)
+    if args.command == "admit-table":
+        return _run_admit_table(args)
     if args.command == "git-ingest":
         return _run_git_ingest(args)
     if args.command == "git-export":
@@ -356,6 +402,66 @@ def _run_trace(args) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_SETTLE_FAILED
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    return EXIT_OK
+
+
+def _run_admit(args) -> int:
+    try:
+        contract = RelationContract.load(args.contract)
+        summary = run_admission(contract=contract,
+                                output_dir=args.out_dir,
+                                temp_dir=args.temp_dir)
+    except RelationConfigError as exc:
+        print(f"error: invalid reference contract: {exc}", file=sys.stderr)
+        return EXIT_ADMIT_FAILED
+    except RelationInputError as exc:
+        print(f"error: cannot process admission input: {exc}",
+              file=sys.stderr)
+        return EXIT_ADMIT_FAILED
+    except OSError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_ADMIT_FAILED
+
+    print(f"conclusion  : {summary['conclusion']}")
+    print(f"identities  : {summary['identity_count']} input, "
+          f"{summary['proof_node_count']} proof node(s), "
+          f"{summary['proof_edge_count']} proof edge(s), "
+          f"{summary['witness_count']} witness(es)")
+    for name, counts in summary["counts"].items():
+        print(f"table {name}: {counts['input']} in / {counts['kept']} kept "
+              f"/ {counts['local_reject']} local rejected / "
+              f"{counts['cascade_reject']} cascade rejected")
+    print(f"result      : {args.out_dir}/admission_report.json")
+    if summary["conclusion"] == "business_rejected":
+        return EXIT_ADMIT_REJECT
+    return EXIT_OK
+
+
+def _run_admit_explain(args) -> int:
+    try:
+        if args.proof_id is not None:
+            payload = get_proof_node(args.result_dir, args.proof_id)
+        else:
+            payload = explain_row(args.result_dir, args.table, args.row_id)
+    except (RelationQueryError, RelationInputError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_ADMIT_FAILED
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return EXIT_OK
+
+
+def _run_admit_table(args) -> int:
+    try:
+        rows = iter_kept_rows(args.result_dir, args.table)
+        count = 0
+        for row in rows:
+            print(json.dumps(row, ensure_ascii=False))
+            count += 1
+    except (RelationQueryError, RelationInputError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_ADMIT_FAILED
+    print(f"# {count} admitted row(s) from table {args.table}",
+          file=sys.stderr)
     return EXIT_OK
 
 

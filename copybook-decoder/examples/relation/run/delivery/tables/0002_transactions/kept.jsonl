@@ -1,0 +1,2 @@
+{"meta":{"source_file":"txns.part1.jsonl","line_number":1,"byte_start":0,"byte_end":60},"fields":{"TXN-ID":"T001","TXN-ACCT":"0000000001","TXN-BRANCH":"BR1","REGION":"CN","AMOUNT":100}}
+{"meta":{"source_file":"txns.part2.jsonl","line_number":2,"byte_start":61,"byte_end":121},"fields":{"TXN-ID":"T004","TXN-ACCT":"0000000002","TXN-BRANCH":null,"REGION":null,"AMOUNT":9}}

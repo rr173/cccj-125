@@ -1,0 +1,300 @@
+{
+  "tool": "copybook-relation-admission",
+  "schema_version": 1,
+  "conclusion": "business_rejected",
+  "elimination_rounds": 2,
+  "identity_count": 11,
+  "proof_node_count": 5,
+  "proof_edge_count": 2,
+  "witness_count": 7,
+  "all_null_optional_count": 1,
+  "staging": {
+    "sqlite": "admission.sqlite3",
+    "staging_bytes_before_cleanup": 403528,
+    "peak_rss_kb": 21552
+  },
+  "tables": [
+    {
+      "ordinal": 0,
+      "name": "accounts",
+      "files": [
+        "/workspace/copybook-decoder/examples/relation/run/input/accounts.jsonl"
+      ],
+      "row_id_path": [
+        "ACCT-ID"
+      ],
+      "fields": {
+        "acct_id": {
+          "path": [
+            "ACCT-ID"
+          ],
+          "type": "string",
+          "nullable": false
+        },
+        "name": {
+          "path": [
+            "ACCT-NAME"
+          ],
+          "type": "string",
+          "nullable": false
+        },
+        "balance": {
+          "path": [
+            "BALANCE"
+          ],
+          "type": "string",
+          "nullable": false
+        },
+        "txn_date": {
+          "path": [
+            "LAST-TXN-DATE"
+          ],
+          "type": "integer",
+          "nullable": false
+        },
+        "region": {
+          "path": [
+            "REGION"
+          ],
+          "type": "string",
+          "nullable": true
+        },
+        "branch_id": {
+          "path": [
+            "BRANCH-ID"
+          ],
+          "type": "string",
+          "nullable": true
+        },
+        "gone_key": {
+          "path": [
+            "GONE-KEY"
+          ],
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "candidate_keys": {
+        "k_acct": [
+          "acct_id"
+        ]
+      },
+      "references": [
+        {
+          "name": "r_gone",
+          "columns": [
+            "gone_key"
+          ],
+          "target_table": "terminated",
+          "target_key": "k_term",
+          "rule": "mandatory"
+        }
+      ],
+      "deliverables": {
+        "kept": "tables/0000_accounts/kept.jsonl",
+        "local_rejected": "tables/0000_accounts/local_rejected.jsonl",
+        "cascade_rejected": "tables/0000_accounts/cascade_rejected.jsonl"
+      }
+    },
+    {
+      "ordinal": 1,
+      "name": "branches",
+      "files": [
+        "/workspace/copybook-decoder/examples/relation/run/input/branches.jsonl"
+      ],
+      "row_id_path": [
+        "BRANCH-ID"
+      ],
+      "fields": {
+        "branch_id": {
+          "path": [
+            "BRANCH-ID"
+          ],
+          "type": "string",
+          "nullable": false
+        },
+        "region": {
+          "path": [
+            "REGION"
+          ],
+          "type": "string",
+          "nullable": false
+        },
+        "name": {
+          "path": [
+            "NAME"
+          ],
+          "type": "string",
+          "nullable": false
+        },
+        "parent": {
+          "path": [
+            "PARENT"
+          ],
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "candidate_keys": {
+        "k_branch": [
+          "branch_id",
+          "region"
+        ],
+        "k_branch_s": [
+          "branch_id"
+        ]
+      },
+      "references": [
+        {
+          "name": "r_parent",
+          "columns": [
+            "parent"
+          ],
+          "target_table": "branches",
+          "target_key": "k_branch_s",
+          "rule": "mandatory"
+        }
+      ],
+      "deliverables": {
+        "kept": "tables/0001_branches/kept.jsonl",
+        "local_rejected": "tables/0001_branches/local_rejected.jsonl",
+        "cascade_rejected": "tables/0001_branches/cascade_rejected.jsonl"
+      }
+    },
+    {
+      "ordinal": 2,
+      "name": "transactions",
+      "files": [
+        "/workspace/copybook-decoder/examples/relation/run/input/txns.part1.jsonl",
+        "/workspace/copybook-decoder/examples/relation/run/input/txns.part2.jsonl"
+      ],
+      "row_id_path": [
+        "TXN-ID"
+      ],
+      "fields": {
+        "txn_id": {
+          "path": [
+            "TXN-ID"
+          ],
+          "type": "string",
+          "nullable": false
+        },
+        "acct": {
+          "path": [
+            "TXN-ACCT"
+          ],
+          "type": "string",
+          "nullable": false
+        },
+        "branch": {
+          "path": [
+            "TXN-BRANCH"
+          ],
+          "type": "string",
+          "nullable": true
+        },
+        "region": {
+          "path": [
+            "REGION"
+          ],
+          "type": "string",
+          "nullable": true
+        },
+        "amount": {
+          "path": [
+            "AMOUNT"
+          ],
+          "type": "integer",
+          "nullable": false
+        }
+      },
+      "candidate_keys": {
+        "k_txn": [
+          "txn_id"
+        ]
+      },
+      "references": [
+        {
+          "name": "r_acct",
+          "columns": [
+            "acct"
+          ],
+          "target_table": "accounts",
+          "target_key": "k_acct",
+          "rule": "mandatory"
+        },
+        {
+          "name": "r_branch",
+          "columns": [
+            "branch",
+            "region"
+          ],
+          "target_table": "branches",
+          "target_key": "k_branch",
+          "rule": "optional"
+        }
+      ],
+      "deliverables": {
+        "kept": "tables/0002_transactions/kept.jsonl",
+        "local_rejected": "tables/0002_transactions/local_rejected.jsonl",
+        "cascade_rejected": "tables/0002_transactions/cascade_rejected.jsonl"
+      }
+    },
+    {
+      "ordinal": 3,
+      "name": "terminated",
+      "files": [
+        "/workspace/copybook-decoder/examples/relation/run/input/terminated.jsonl"
+      ],
+      "row_id_path": [
+        "TERM-ID"
+      ],
+      "fields": {
+        "term_id": {
+          "path": [
+            "TERM-ID"
+          ],
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "candidate_keys": {
+        "k_term": [
+          "term_id"
+        ]
+      },
+      "references": [],
+      "deliverables": {
+        "kept": "tables/0003_terminated/kept.jsonl",
+        "local_rejected": "tables/0003_terminated/local_rejected.jsonl",
+        "cascade_rejected": "tables/0003_terminated/cascade_rejected.jsonl"
+      }
+    }
+  ],
+  "counts": {
+    "accounts": {
+      "input": 3,
+      "kept": 2,
+      "local_reject": 0,
+      "cascade_reject": 1
+    },
+    "branches": {
+      "input": 3,
+      "kept": 2,
+      "local_reject": 0,
+      "cascade_reject": 1
+    },
+    "transactions": {
+      "input": 4,
+      "kept": 2,
+      "local_reject": 0,
+      "cascade_reject": 2
+    },
+    "terminated": {
+      "input": 1,
+      "kept": 1,
+      "local_reject": 0,
+      "cascade_reject": 0
+    }
+  }
+}
