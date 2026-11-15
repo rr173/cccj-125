@@ -1,0 +1,1 @@
+{"meta": {"source_file": "/landing/accounts.dat", "line_number": 1, "byte_start": 0, "byte_end": 120, "layout": "ACCT", "layout_version": "1"}, "fields": {"ACCT-NO": "1000002345", "CUST-NAME": "ZHANG WEI", "BALANCE": "12345.67", "OPEN-DATE": "2024-01-15", "BRANCH-CODE": "BR01", "ALT-ACCT": "1000002345"}}

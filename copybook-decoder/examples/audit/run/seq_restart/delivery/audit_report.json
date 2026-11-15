@@ -18,6 +18,6 @@
   "file_diagnostic_count": 0,
   "accepted_details_file": "accepted_details.jsonl",
   "accepted_detail_count": 3,
-  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 15760},
+  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 19680},
   "output_dir": "/workspace/copybook-decoder/examples/audit/run/seq_restart/delivery"
 }

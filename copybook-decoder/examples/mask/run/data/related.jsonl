@@ -1,0 +1,2 @@
+{"meta": {"source_file": "/landing/related.dat", "line_number": 1, "byte_start": 0, "byte_end": 120, "layout": "HOLDER", "layout_version": "1"}, "fields": {"ACCT-NO": "1000002345", "HOLDER-NAME": "ZHANG WEI", "HOLDER-SINCE": "2024-01-15"}}
+{"meta": {"source_file": "/landing/related.dat", "line_number": 2, "byte_start": 121, "byte_end": 241, "layout": "HOLDER", "layout_version": "1"}, "fields": {"ACCT-NO": "1000002346", "HOLDER-NAME": "LI NA", "HOLDER-SINCE": "2022-06-30"}}

@@ -1,0 +1,4 @@
+{"meta": {"source_file": "/landing/txns.dat", "line_number": 1, "byte_start": 0, "byte_end": 120, "layout": "TXN", "layout_version": "1"}, "fields": {"ACCT-NO": "1218116094", "TXN-AMOUNT": "117.80", "TXN-DATE": "2023-12-17"}}
+{"meta": {"source_file": "/landing/txns.dat", "line_number": 2, "byte_start": 121, "byte_end": 241, "layout": "TXN", "layout_version": "1"}, "fields": {"ACCT-NO": "1218116094", "TXN-AMOUNT": "-29.82", "TXN-DATE": "2024-01-14"}}
+{"meta": {"source_file": "/landing/txns.dat", "line_number": 3, "byte_start": 242, "byte_end": 362, "layout": "TXN", "layout_version": "1"}, "fields": {"ACCT-NO": "1038034274", "TXN-AMOUNT": "1019607.60", "TXN-DATE": "2023-12-17"}}
+{"meta": {"source_file": "/landing/txns.dat", "line_number": 4, "byte_start": 363, "byte_end": 483, "layout": "TXN", "layout_version": "1"}, "fields": {"ACCT-NO": "6117682847", "TXN-AMOUNT": "0.01", "TXN-DATE": "2024-01-07"}}

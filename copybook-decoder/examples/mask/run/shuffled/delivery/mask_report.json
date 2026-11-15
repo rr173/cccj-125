@@ -1,0 +1,221 @@
+{
+  "report": "mask-run",
+  "format_version": 1,
+  "conclusion": "masked",
+  "key_fingerprint": "sha256:aba28c86450ca4e6",
+  "inputs": [
+    "/workspace/copybook-decoder/examples/mask/run/data/accounts.jsonl",
+    "/workspace/copybook-decoder/examples/mask/run/data/related.jsonl",
+    "/workspace/copybook-decoder/examples/mask/run/data/txns.jsonl"
+  ],
+  "outputs": {
+    "records": [
+      "accounts.masked.jsonl",
+      "related.masked.jsonl",
+      "txns.masked.jsonl"
+    ],
+    "record_report": "record_report.jsonl",
+    "report_json": "mask_report.json",
+    "report_text": "mask_report.txt"
+  },
+  "files": [
+    {
+      "input": "/workspace/copybook-decoder/examples/mask/run/data/accounts.jsonl",
+      "output": "accounts.masked.jsonl",
+      "records_in": 5,
+      "records_out": 4,
+      "records_rejected": 1
+    },
+    {
+      "input": "/workspace/copybook-decoder/examples/mask/run/data/related.jsonl",
+      "output": "related.masked.jsonl",
+      "records_in": 2,
+      "records_out": 2,
+      "records_rejected": 0
+    },
+    {
+      "input": "/workspace/copybook-decoder/examples/mask/run/data/txns.jsonl",
+      "output": "txns.masked.jsonl",
+      "records_in": 4,
+      "records_out": 4,
+      "records_rejected": 0
+    }
+  ],
+  "totals": {
+    "records_in": 11,
+    "records_out": 10,
+    "records_rejected": 1
+  },
+  "policy": {
+    "rules": [
+      {
+        "path": [
+          "ACCT-NO"
+        ],
+        "path_text": "ACCT-NO",
+        "action": "pseudonym",
+        "kind": "account",
+        "group": "acct",
+        "on_null": "keep",
+        "on_empty": "reject",
+        "matched_records": 11,
+        "matched_values": 11,
+        "nulls": 0,
+        "empties": 0,
+        "missing_records": 0
+      },
+      {
+        "path": [
+          "ALT-ACCT"
+        ],
+        "path_text": "ALT-ACCT",
+        "action": "pseudonym",
+        "kind": "account",
+        "group": "acct",
+        "on_null": "reject",
+        "on_empty": "keep",
+        "matched_records": 4,
+        "matched_values": 3,
+        "nulls": 1,
+        "empties": 0,
+        "missing_records": 7
+      },
+      {
+        "path": [
+          "CUST-NAME"
+        ],
+        "path_text": "CUST-NAME",
+        "action": "synthesize",
+        "kind": "name",
+        "group": "person",
+        "on_null": "keep",
+        "on_empty": "keep",
+        "matched_records": 4,
+        "matched_values": 3,
+        "nulls": 1,
+        "empties": 0,
+        "missing_records": 7
+      },
+      {
+        "path": [
+          "HOLDER-NAME"
+        ],
+        "path_text": "HOLDER-NAME",
+        "action": "synthesize",
+        "kind": "name",
+        "group": "person",
+        "on_null": "keep",
+        "on_empty": "keep",
+        "matched_records": 2,
+        "matched_values": 2,
+        "nulls": 0,
+        "empties": 0,
+        "missing_records": 9
+      },
+      {
+        "path": [
+          "BALANCE"
+        ],
+        "path_text": "BALANCE",
+        "action": "bucketize",
+        "kind": "amount",
+        "group": null,
+        "on_null": "keep",
+        "on_empty": "keep",
+        "matched_records": 5,
+        "matched_values": 5,
+        "nulls": 0,
+        "empties": 0,
+        "missing_records": 6
+      },
+      {
+        "path": [
+          "TXN-AMOUNT"
+        ],
+        "path_text": "TXN-AMOUNT",
+        "action": "shift",
+        "kind": "amount",
+        "group": null,
+        "on_null": "keep",
+        "on_empty": "keep",
+        "matched_records": 4,
+        "matched_values": 4,
+        "nulls": 0,
+        "empties": 0,
+        "missing_records": 7
+      },
+      {
+        "path": [
+          "OPEN-DATE"
+        ],
+        "path_text": "OPEN-DATE",
+        "action": "shift",
+        "kind": "date",
+        "group": "bizdate",
+        "on_null": "keep",
+        "on_empty": "keep",
+        "matched_records": 5,
+        "matched_values": 5,
+        "nulls": 0,
+        "empties": 0,
+        "missing_records": 6
+      },
+      {
+        "path": [
+          "TXN-DATE"
+        ],
+        "path_text": "TXN-DATE",
+        "action": "shift",
+        "kind": "date",
+        "group": "bizdate",
+        "on_null": "keep",
+        "on_empty": "keep",
+        "matched_records": 4,
+        "matched_values": 4,
+        "nulls": 0,
+        "empties": 0,
+        "missing_records": 7
+      },
+      {
+        "path": [
+          "HOLDER-SINCE"
+        ],
+        "path_text": "HOLDER-SINCE",
+        "action": "bucketize",
+        "kind": "date",
+        "group": null,
+        "on_null": "keep",
+        "on_empty": "keep",
+        "matched_records": 2,
+        "matched_values": 2,
+        "nulls": 0,
+        "empties": 0,
+        "missing_records": 9
+      }
+    ],
+    "groups": [
+      {
+        "group": "acct",
+        "distinct_values": 5,
+        "json_type": "str",
+        "collision_check": "passed"
+      }
+    ]
+  },
+  "rejections": [
+    {
+      "file": "/workspace/copybook-decoder/examples/mask/run/data/accounts.jsonl",
+      "line_number": 5,
+      "path": [
+        "ALT-ACCT"
+      ],
+      "reason": "null value at path 'ALT-ACCT' refused by policy (on_null=reject)"
+    }
+  ],
+  "notes": [
+    "稳定映射的输入范围: 算法版本 copybook-mask/v1、动作、关联组(未声明组时为完整字段路径)、规范化后的原值、映射密钥, 五者共同决定输出。",
+    "同一密钥与策略下, 同一原值在任意输入文件、任意文件顺序、任意分块大小下得到同一假值; 不同关联组之间即使原值相同也互不可关联。",
+    "密钥轮换后 pseudonym/synthesize/shift 的全部结果都会改变: 新交付无法与旧密钥产出的脱敏数据关联; 同一次运行内部仍可关联。bucketize 不依赖密钥,轮换前后结果一致。",
+    "输出与报告不含原始敏感值, 也不含可逆映射表; 映射密钥只存在于内存, 临时暂存库在运行结束后删除。"
+  ]
+}

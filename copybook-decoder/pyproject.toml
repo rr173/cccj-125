@@ -1,6 +1,6 @@
 [project]
 name = "copybook-decoder"
-version = "0.3.0"
+version = "0.4.0"
 description = "Fixed-width EBCDIC data decoder driven by versioned copybook layouts"
 requires-python = ">=3.9"
 

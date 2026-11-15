@@ -1,0 +1,23 @@
+{
+  "key_fingerprint": "sha256:aba28c86450ca4e6",
+  "fields": [
+    {"path": ["ACCT-NO"], "action": "pseudonym", "kind": "account",
+     "group": "acct", "on_empty": "reject"},
+    {"path": ["ALT-ACCT"], "action": "pseudonym", "kind": "account",
+     "group": "acct", "on_null": "reject"},
+    {"path": ["CUST-NAME"], "action": "synthesize", "kind": "name",
+     "group": "person"},
+    {"path": ["HOLDER-NAME"], "action": "synthesize", "kind": "name",
+     "group": "person"},
+    {"path": ["BALANCE"], "action": "bucketize", "kind": "amount",
+     "boundaries": ["1000.00", "10000.00", "100000.00"]},
+    {"path": ["TXN-AMOUNT"], "action": "shift", "kind": "amount",
+     "max_pct": "5"},
+    {"path": ["OPEN-DATE"], "action": "shift", "kind": "date",
+     "format": "%Y-%m-%d", "max_days": 30, "group": "bizdate"},
+    {"path": ["TXN-DATE"], "action": "shift", "kind": "date",
+     "format": "%Y-%m-%d", "max_days": 30, "group": "bizdate"},
+    {"path": ["HOLDER-SINCE"], "action": "bucketize", "kind": "date",
+     "format": "%Y-%m-%d", "granularity": "month"}
+  ]
+}

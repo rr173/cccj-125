@@ -1,0 +1,46 @@
+脱敏样本生成报告 / Masked Sample Generation Report
+====================================================
+输入文件 (3):
+  /workspace/copybook-decoder/examples/mask/run/data/accounts.jsonl
+  /workspace/copybook-decoder/examples/mask/run/data/related.jsonl
+  /workspace/copybook-decoder/examples/mask/run/data/txns.jsonl
+密钥指纹 (key fingerprint): sha256:aba28c86450ca4e6
+结论: masked
+
+逐文件计数 (per-file counts):
+  输入文件                                           读入       交付       拒绝
+  /workspace/copybook-decoder/examples/mask/run/data/accounts.jsonl        5        4        1
+  /workspace/copybook-decoder/examples/mask/run/data/related.jsonl        2        2        0
+  /workspace/copybook-decoder/examples/mask/run/data/txns.jsonl        4        4        0
+  合计                                             11       10        1
+
+策略摘要 (policy summary):
+  ACCT-NO  action=pseudonym kind=account group=acct
+      命中记录 11 (值 11), 空值 0, 空串 0, 缺字段 0
+  ALT-ACCT  action=pseudonym kind=account group=acct
+      命中记录 4 (值 3), 空值 1, 空串 0, 缺字段 7
+  CUST-NAME  action=synthesize kind=name group=person
+      命中记录 4 (值 3), 空值 1, 空串 0, 缺字段 7
+  HOLDER-NAME  action=synthesize kind=name group=person
+      命中记录 2 (值 2), 空值 0, 空串 0, 缺字段 9
+  BALANCE  action=bucketize kind=amount
+      命中记录 5 (值 5), 空值 0, 空串 0, 缺字段 6
+  TXN-AMOUNT  action=shift kind=amount
+      命中记录 4 (值 4), 空值 0, 空串 0, 缺字段 7
+  OPEN-DATE  action=shift kind=date group=bizdate
+      命中记录 5 (值 5), 空值 0, 空串 0, 缺字段 6
+  TXN-DATE  action=shift kind=date group=bizdate
+      命中记录 4 (值 4), 空值 0, 空串 0, 缺字段 7
+  HOLDER-SINCE  action=bucketize kind=date
+      命中记录 2 (值 2), 空值 0, 空串 0, 缺字段 9
+关联组 (link groups):
+  acct: 不同原值 5 个, 类型 str, 冲突检查 passed
+
+拒绝记录 (1):
+  /workspace/copybook-decoder/examples/mask/run/data/accounts.jsonl:5  路径 ALT-ACCT  原因: null value at path 'ALT-ACCT' refused by policy (on_null=reject)
+
+边界说明 (mapping scope and rotation boundary):
+  - 稳定映射的输入范围: 算法版本 copybook-mask/v1、动作、关联组(未声明组时为完整字段路径)、规范化后的原值、映射密钥, 五者共同决定输出。
+  - 同一密钥与策略下, 同一原值在任意输入文件、任意文件顺序、任意分块大小下得到同一假值; 不同关联组之间即使原值相同也互不可关联。
+  - 密钥轮换后 pseudonym/synthesize/shift 的全部结果都会改变: 新交付无法与旧密钥产出的脱敏数据关联; 同一次运行内部仍可关联。bucketize 不依赖密钥,轮换前后结果一致。
+  - 输出与报告不含原始敏感值, 也不含可逆映射表; 映射密钥只存在于内存, 临时暂存库在运行结束后删除。

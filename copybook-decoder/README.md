@@ -21,8 +21,13 @@ copybook/            解码器包
     flatten.py       布局展开：完整分组路径、字节区间、结构问题检测
     diff.py          字段级对照：同义/位移/解释变化/增删/视图簇
     engine.py        容错清单加载、闭区间日期分段、报告装配与输出
-  __main__.py        CLI（decode / audit / impact 三个子命令）
-examples/            示例 Copybook、清单、数据生成器、交接场景、影响报告场景与压测
+  mask/              脱敏样本生成：解码 JSONL + 字段策略 -> 脱敏 JSONL + 报告
+    policy.py        策略解析与校验（完整字段路径 -> 类别 + 动作）
+    mapping.py       密钥加载与确定性脱敏原语（HMAC 计数器模式）
+    engine.py        全量扫描验证 -> 映射构建 -> 分块交付（SQLite 暂存）
+  __main__.py        CLI（decode / audit / impact / mask 四个子命令）
+examples/            示例 Copybook、清单、数据生成器、交接场景、影响报告场景、
+                     脱敏场景与压测
 tests/               unittest 测试套件与字节构造夹具
 ```
 
@@ -357,6 +362,137 @@ python3 examples/impact/run_scenarios.py   # 构造场景 -> 跑 CLI -> 对照�
 区间空洞、缺少旧版本、Copybook 缺失、字段路径重复、版本号复用，以及输出
 目录已存在时拒绝覆盖。
 
+## 脱敏样本生成（mask）
+
+下游团队需要用真实的固定宽度账户流水验证报表和联调程序，但客户姓名、
+账号和余额不能直接复制到测试环境。`copybook mask` 在**已经解码的
+JSONL**（`write_jsonl` 的产出）之上按字段策略生成脱敏样本：它不重新
+读取原始 EBCDIC 文件，不做字段布局比较，也不判断批次能否入仓。
+
+```bash
+python3 -m copybook mask accounts.jsonl txns.jsonl related.jsonl \
+    --policy examples/mask/mask_policy.json \
+    --key-env MASK_KEY --out-dir delivery/masked-2024-03/
+```
+
+Python 接口：
+
+```python
+from copybook.mask import MaskKey, MaskPolicy, run_mask
+
+policy = MaskPolicy.load("examples/mask/mask_policy.json")
+key = MaskKey.from_env("MASK_KEY")          # 或 MaskKey.from_file(path)
+summary = run_mask(["accounts.jsonl", "txns.jsonl", "related.jsonl"],
+                   policy=policy, key=key,
+                   output_dir="delivery/masked-2024-03/")
+# summary 只回计数与路径等有界信息；完整结果在输出目录下：
+#   <输入名>.masked.jsonl   每个输入文件一份脱敏记录
+#   mask_report.json        策略摘要、逐文件计数、拒绝原因、边界说明
+#   mask_report.txt         可读报告
+#   record_report.jsonl     每条输入记录一行：如何处理（不含原值）
+```
+
+### 字段策略
+
+策略按**完整字段路径**（字符串数组；遇到 OCCURS 列表时对每个元素生效）
+声明字段类别和动作；未列入策略的字段原样保留：
+
+```json
+{
+  "key_fingerprint": "sha256:aba28c86450ca4e6",
+  "fields": [
+    {"path": ["ACCT-NO"], "action": "pseudonym", "kind": "account",
+     "group": "acct", "on_empty": "reject"},
+    {"path": ["CUST-NAME"], "action": "synthesize", "kind": "name",
+     "group": "person"},
+    {"path": ["BALANCE"], "action": "bucketize", "kind": "amount",
+     "boundaries": ["1000.00", "10000.00", "100000.00"]},
+    {"path": ["TXN-AMOUNT"], "action": "shift", "kind": "amount",
+     "max_pct": "5"},
+    {"path": ["OPEN-DATE"], "action": "shift", "kind": "date",
+     "format": "%Y-%m-%d", "max_days": 30, "group": "bizdate"},
+    {"path": ["HOLDER-SINCE"], "action": "bucketize", "kind": "date",
+     "granularity": "month"}
+  ]
+}
+```
+
+四种动作：
+
+- **pseudonym**（账号等需要跨文件关联的字段）：映射成稳定的假值。
+  同一 `group` 内同一原值在任意输入文件得到同一结果，因此同一主体
+  在账号、明细和关联表中的键仍可连接；不同原值**不能合并**——交付前
+  对全量不同值做冲突检查，任何碰撞都使整次运行失败，绝不静默合并。
+  输出保留原字段的类型和格式约束：数字位仍是数字位、大小写保持、
+  分隔符原样、整数不会得到前导零。同一关联组内字段的 JSON 类型
+  （字符串/整数）必须一致，否则无法保证稳定关联，运行拒绝。
+- **synthesize**（姓名等自由文本）：替换为合成值，保证不含原文片段
+  （原文的每个长度 ≥ 2 的词元及整体都不出现在合成值中，否则重掷）。
+- **shift**（余额/日期）：确定性偏移。金额按 `max_pct`（百分比）或
+  `max_abs`（绝对值）界内做 HMAC 派生抖动，小数位与原值一致，全部
+  用精确有理数运算（与 decimal 上下文无关）；日期按 `max_days` 界内
+  逐值偏移，同一原日期在同一 `group` 的各文件中偏移一致，偏移后仍
+  可连接同一主体。
+- **bucketize**（区间泛化）：金额落入声明边界得到 `<b0`、`lo-hi`
+  （半开区间）、`>=bn` 标签；日期泛化到 `month`/`quarter`/`year`。
+  不依赖密钥。
+
+**空值与缺字段分别处理**：字段值为 JSON `null` 时按 `on_null`
+（`keep` 保留 / `reject` 拒绝该记录）处理；字段在记录中整个缺失时
+直接跳过并单独计数。空字符串按 `on_empty` 同理处理——空账号不会被
+映射成一个假值而造成虚假关联。策略指向不存在的路径（全输入无一命
+中）、路径指向容器、字段类型与策略不符、重复路径、未知参数、以及
+可能破坏唯一性的规则，全部报错，绝不静默跳过。
+
+### 密钥与边界
+
+- 映射密钥由调用者提供：`--key-env <变量名>` 或 `--key-file <路径>`，
+  至少 16 字节。策略可声明 `key_fingerprint`（`sha256:` + 16 位十六
+  进制），密钥不符即失败。密钥只存在于内存，**绝不**写进输出、诊断、
+  日志或报告；报告中只出现其单向指纹。
+- **稳定映射的输入范围**：算法版本 `copybook-mask/v1`、动作、关联组
+  （未声明组时为完整字段路径）、规范化后的原值、映射密钥，五者共同
+  决定输出。同一密钥与策略下，更换输入文件顺序和分块大小
+  （`--chunk-size`）结果逐字节一致；不同关联组之间即使原值相同也互
+  不可关联。
+- **密钥轮换边界**：轮换密钥后 pseudonym/synthesize/shift 的全部
+  结果都会改变——新交付无法与旧密钥产出的脱敏数据关联；同一次运行
+  内部仍可关联。bucketize 不依赖密钥，轮换前后一致。
+- 脱敏输出和报告不含原始敏感值，也不保存可逆映射表；扫描期的
+  SQLite 暂存库在运行结束后删除。
+
+### 扫描先行与交付安全
+
+先流式扫描并验证**所有**输入和策略（JSON 结构、记录形状、类型匹配、
+收集各关联组的不同原值到磁盘暂存），完成映射构建与冲突检查后，才
+创建输出目录并分块写出。任何输入损坏、密钥不可用、映射冲突或输出
+路径已存在，都不会留下貌似完整的数据集；交付中途失败会删除已创建
+的半成品目录。输出目录必须是**不存在的新目录**，既有目录保持原样。
+
+### 退出码
+
+| 退出码 | 含义 |
+|---|---|
+| 0 | 脱敏数据集已交付（`conclusion = masked`；被拒记录计入报告） |
+| 2 | 输入/策略/密钥/冲突/输出路径失败，未留下交付目录 |
+
+### 场景演示
+
+`examples/mask/` 用人工构造的三个文件（账号主表、交易明细、关联持有
+人表）演示全部行为，期望值在 `expected_results.py` 中手工写出——计数、
+拒绝原因、区间标签、空值/缺字段、连接关系为字面量，HMAC 决定的脱敏值
+由一份**独立参考实现**（只按文档化算法规范用标准库重写，不 import
+被测包）给出，运行器逐字段对照：
+
+```bash
+python3 examples/mask/run_scenarios.py
+```
+
+覆盖：同一账号跨文件稳定替换、不同账号不碰撞、姓名不泄漏原文、空值与
+缺字段的不同处理、金额区间化与偏移、日期偏移后仍可连接同一主体、策略
+路径/类型错误、错误密钥、输入 JSON 损坏、既有输出目录，以及打乱文件
+次序并改变分块大小后输出逐字节不变。
+
 ## 测试
 
 ```bash
@@ -368,8 +504,13 @@ python3 -m unittest discover -s tests -t . -v
 策略与视图容错、按日期切换布局版本、截断/超长行、坏行隔离后的行号稳定
 性、绝对字节偏移、按偏移定位与隔离导出；交接校验的证据归并完整性、
 五种控制记录状态机、批内/文件级拒收边界、不可判定数量、SQLite 磁盘暂存与
-有界内存、交付目录安全、CLI 三档退出码；以及影响报告的布局展开（分组
+有界内存、交付目录安全、CLI 三档退出码；影响报告的布局展开（分组
 路径、视图簇、重复路径检测）、字段分类（位移 vs 解释变化、FILLER 填充、
 codec 仅影响 DISPLAY）、日期分段（闭区间边界、多次切换、开放区间）、
 各类清单问题（重叠/空洞/缺旧版本/缺 Copybook/路径重复/版本复用）与
-输出目录防覆盖。
+输出目录防覆盖；以及脱敏生成的策略解析（路径/动作/参数/指纹校验）、
+密钥加载（环境/文件/长度/指纹核对）、脱敏原语（格式保持假值、无片段
+合成名、精确金额抖动、日期偏移、区间标签）、引擎行为（跨文件连接、
+空值/缺字段、策略拒绝、OCCURS 通配、整数账号、混合类型组拒绝、映射
+冲突中止、损坏输入、交付目录安全、顺序与分块不变性、密钥轮换）与
+CLI 两档退出码。
