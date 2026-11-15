@@ -17,6 +17,11 @@ from .impact import (COMPATIBLE, INCOMPATIBLE, ImpactError,
 from .manifest import Manifest
 from .mask import MaskError, MaskKey, MaskPolicy, run_mask
 from .pipeline import decode_file
+from .settle import (EXIT_BUSINESS_REJECT as EXIT_SETTLE_REJECT,
+                     EXIT_CANNOT_PROCESS as EXIT_SETTLE_FAILED)
+from .settle import (SettleConfig, SettleConfigError, SettleInputError,
+                     SettleQueryError)
+from .settle import run_settlement, trace_object
 
 # Exit codes for the audit subcommand.
 EXIT_OK = 0                 # structure valid, every batch accepted
@@ -111,6 +116,35 @@ def main(argv=None) -> int:
                           "only the unique subdirectory created for this "
                           "run is cleaned up")
 
+    stl = sub.add_parser(
+        "settle",
+        help="replay bill/receipt/cancel events into open-item allocations "
+             "as of a cutoff, emitting balances, aging and the full "
+             "allocation history")
+    stl.add_argument("inputs", nargs="+",
+                     help="decoded event JSONL files (meta/fields wrapper)")
+    stl.add_argument("--config", required=True,
+                     help="settlement config JSON: paths for event_id, "
+                          "account, currency, at, kind, object_id, amount, "
+                          "due_on, target_id")
+    stl.add_argument("--cutoff", required=True,
+                     help="ISO 8601 offset timestamp; only events at <= "
+                          "cutoff (UTC) are applied")
+    stl.add_argument("--out-dir", required=True,
+                     help="new result directory (must not exist yet)")
+
+    trc = sub.add_parser(
+        "trace",
+        help="trace one bill or receipt through a delivered settle result "
+             "without any original input files")
+    trc.add_argument("result_dir",
+                     help="settle output directory produced by 'settle'")
+    trc.add_argument("object_id",
+                     help="the bill or receipt object_id to trace")
+    trc.add_argument("--kind", choices=["BILL", "RECEIPT"],
+                     help="disambiguate when the id exists in both "
+                          "namespaces")
+
     args = parser.parse_args(argv)
     if args.command == "decode":
         return _run_decode(args)
@@ -118,6 +152,10 @@ def main(argv=None) -> int:
         return _run_audit(args)
     if args.command == "mask":
         return _run_mask(args)
+    if args.command == "settle":
+        return _run_settle(args)
+    if args.command == "trace":
+        return _run_trace(args)
     return _run_impact(args)
 
 
@@ -212,6 +250,46 @@ def _run_mask(args) -> int:
     print(f"report      : {args.out_dir}/{summary['report_json']}")
     print(f"per-record  : {args.out_dir}/{summary['record_report']}")
     return EXIT_MASK_OK
+
+
+def _run_settle(args) -> int:
+    try:
+        config = SettleConfig.load(args.config)
+        summary = run_settlement(
+            args.inputs, config=config, cutoff=args.cutoff,
+            output_dir=args.out_dir)
+    except SettleConfigError as exc:
+        print(f"error: invalid settlement config: {exc}", file=sys.stderr)
+        return EXIT_SETTLE_FAILED
+    except SettleInputError as exc:
+        print(f"error: cannot process settlement input: {exc}",
+              file=sys.stderr)
+        return EXIT_SETTLE_FAILED
+
+    print(f"conclusion  : {summary['conclusion']}")
+    print(f"events      : {summary['event_count']} read, "
+          f"{summary['applied_event_count']} applied, "
+          f"{summary['post_cutoff_event_count']} after cutoff")
+    print(f"groups      : {summary['group_count']} group(s), "
+          f"{summary['valid_group_count']} valid, "
+          f"{summary['invalid_group_count']} invalid")
+    print(f"cutoff      : {summary['cutoff']['utc']} "
+          f"(base day {summary['cutoff']['base_day']})")
+    print(f"result      : {args.out_dir}/settle_report.json")
+    if summary["invalid_group_count"]:
+        return EXIT_SETTLE_REJECT
+    return EXIT_OK
+
+
+def _run_trace(args) -> int:
+    try:
+        result = trace_object(args.result_dir, args.object_id,
+                              kind=args.kind)
+    except (SettleQueryError, SettleInputError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_SETTLE_FAILED
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return EXIT_OK
 
 
 def _run_impact(args) -> int:

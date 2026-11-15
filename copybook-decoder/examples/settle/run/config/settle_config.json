@@ -1,0 +1,31 @@
+{
+  "paths": {
+    "event_id": [
+      "ID"
+    ],
+    "account": [
+      "ACCT"
+    ],
+    "currency": [
+      "CCY"
+    ],
+    "at": [
+      "AT"
+    ],
+    "kind": [
+      "KIND"
+    ],
+    "object_id": [
+      "OID"
+    ],
+    "amount": [
+      "AMT"
+    ],
+    "due_on": [
+      "DUE"
+    ],
+    "target_id": [
+      "TID"
+    ]
+  }
+}

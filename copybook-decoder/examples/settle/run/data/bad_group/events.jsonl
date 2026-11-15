@@ -1,0 +1,5 @@
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "g1", "ACCT": "GOOD", "CCY": "CNY", "AT": "2026-01-01T00:00:01Z", "KIND": "BILL", "OID": "GB", "AMT": "10.00", "DUE": "2026-02-01"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "g2", "ACCT": "GOOD", "CCY": "CNY", "AT": "2026-01-01T00:00:02Z", "KIND": "RECEIPT", "OID": "GP", "AMT": "10.00"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "b1", "ACCT": "BAD", "CCY": "CNY", "AT": "2026-01-01T00:00:01Z", "KIND": "RECEIPT", "OID": "XP", "AMT": "10.00"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "b2", "ACCT": "BAD", "CCY": "CNY", "AT": "2026-01-01T00:00:02Z", "KIND": "CANCEL_RECEIPT", "TID": "XP"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "b3", "ACCT": "BAD", "CCY": "CNY", "AT": "2026-01-01T00:00:03Z", "KIND": "CANCEL_RECEIPT", "TID": "XP"}}

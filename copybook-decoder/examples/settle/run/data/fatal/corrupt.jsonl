@@ -1,0 +1,2 @@
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "ok1", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:01Z", "KIND": "RECEIPT", "OID": "P", "AMT": "1.00"}}
+{not valid json

@@ -1,0 +1,9 @@
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e01", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:01Z", "KIND": "BILL", "OID": "A", "AMT": "100.00", "DUE": "2026-01-01"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e02", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:02Z", "KIND": "BILL", "OID": "B", "AMT": "100.00", "DUE": "2026-01-01"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e03", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:03Z", "KIND": "RECEIPT", "OID": "P", "AMT": "150.00"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e04", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:04Z", "KIND": "RECEIPT", "OID": "Q", "AMT": "50.00"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e05", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:05Z", "KIND": "CANCEL_RECEIPT", "TID": "P"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e06", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:06Z", "KIND": "BILL", "OID": "C", "AMT": "100.00", "DUE": "2026-01-01"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e07", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:07Z", "KIND": "RECEIPT", "OID": "R", "AMT": "60.00"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e08", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:08Z", "KIND": "CANCEL_BILL", "TID": "B"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "e09", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:09Z", "KIND": "CANCEL_RECEIPT", "TID": "Q"}}

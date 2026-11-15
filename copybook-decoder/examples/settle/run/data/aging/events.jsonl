@@ -1,0 +1,6 @@
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "B-FUT", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:01Z", "KIND": "BILL", "OID": "B-FUT", "AMT": "100.00", "DUE": "2026-04-01"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "B-D0", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:02Z", "KIND": "BILL", "OID": "B-D0", "AMT": "100.00", "DUE": "2026-03-31"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "B-D30", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:03Z", "KIND": "BILL", "OID": "B-D30", "AMT": "100.00", "DUE": "2026-03-01"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "B-D31", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:04Z", "KIND": "BILL", "OID": "B-D31", "AMT": "100.00", "DUE": "2026-02-28"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "B-D61", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:05Z", "KIND": "BILL", "OID": "B-D61", "AMT": "100.00", "DUE": "2026-01-29"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "B-D91", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:06Z", "KIND": "BILL", "OID": "B-D91", "AMT": "100.00", "DUE": "2025-12-30"}}

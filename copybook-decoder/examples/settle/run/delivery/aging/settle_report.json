@@ -1,0 +1,180 @@
+{
+  "tool": "copybook-settle",
+  "schema_version": 1,
+  "output_dir": "/workspace/copybook-decoder/examples/settle/run/delivery/aging",
+  "files": {
+    "report": "settle_report.json",
+    "events": "events.jsonl",
+    "objects": "objects.jsonl",
+    "allocations": "allocations.jsonl"
+  },
+  "cutoff": {
+    "requested": "2026-03-31T12:00:00Z",
+    "utc": "2026-03-31T12:00:00+00:00",
+    "base_day": "2026-03-31"
+  },
+  "config_paths": {
+    "event_id": [
+      "ID"
+    ],
+    "account": [
+      "ACCT"
+    ],
+    "currency": [
+      "CCY"
+    ],
+    "at": [
+      "AT"
+    ],
+    "kind": [
+      "KIND"
+    ],
+    "object_id": [
+      "OID"
+    ],
+    "amount": [
+      "AMT"
+    ],
+    "due_on": [
+      "DUE"
+    ],
+    "target_id": [
+      "TID"
+    ]
+  },
+  "inputs": [
+    "/workspace/copybook-decoder/examples/settle/run/data/aging/events.jsonl"
+  ],
+  "event_count": 6,
+  "applied_event_count": 6,
+  "post_cutoff_event_count": 0,
+  "group_count": 1,
+  "valid_group_count": 1,
+  "invalid_group_count": 0,
+  "conclusion": "settled",
+  "totals_by_currency": {
+    "CNY": {
+      "bill_original_cents": 60000,
+      "bill_open_cents": 60000,
+      "receipt_original_cents": 0,
+      "receipt_unallocated_cents": 0,
+      "active_allocation_cents": 0,
+      "bill_open_amount": "600.00",
+      "receipt_unallocated_amount": "0.00",
+      "active_allocation_amount": "0.00"
+    }
+  },
+  "aging_buckets": {
+    "ACC1|CNY": {
+      "not_due": {
+        "cents": 20000,
+        "amount": "200.00"
+      },
+      "overdue_1_30": {
+        "cents": 10000,
+        "amount": "100.00"
+      },
+      "overdue_31_60": {
+        "cents": 10000,
+        "amount": "100.00"
+      },
+      "overdue_61_90": {
+        "cents": 10000,
+        "amount": "100.00"
+      },
+      "overdue_91_plus": {
+        "cents": 10000,
+        "amount": "100.00"
+      }
+    }
+  },
+  "groups": [
+    {
+      "account": "ACC1",
+      "currency": "CNY",
+      "status": "valid",
+      "applied_event_count": 6,
+      "post_cutoff_event_count": 0,
+      "bill_count": 6,
+      "receipt_count": 0,
+      "active_allocation_count": 0,
+      "conservation": {
+        "bill_original_cents": 60000,
+        "bill_open_cents": 60000,
+        "receipt_original_cents": 0,
+        "receipt_unallocated_cents": 0,
+        "active_allocation_cents": 0,
+        "bill_invariant_ok": true,
+        "receipt_invariant_ok": true
+      },
+      "aging": {
+        "base_day": "2026-03-31",
+        "bucket_cents": {
+          "not_due": 20000,
+          "overdue_1_30": 10000,
+          "overdue_31_60": 10000,
+          "overdue_61_90": 10000,
+          "overdue_91_plus": 10000
+        },
+        "bucket_amounts": {
+          "not_due": "200.00",
+          "overdue_1_30": "100.00",
+          "overdue_31_60": "100.00",
+          "overdue_61_90": "100.00",
+          "overdue_91_plus": "100.00"
+        },
+        "details": [
+          {
+            "bill_id": "B-FUT",
+            "due_on": "2026-04-01",
+            "age_days": -1,
+            "bucket": "not_due",
+            "open_cents": 10000,
+            "open_amount": "100.00"
+          },
+          {
+            "bill_id": "B-D0",
+            "due_on": "2026-03-31",
+            "age_days": 0,
+            "bucket": "not_due",
+            "open_cents": 10000,
+            "open_amount": "100.00"
+          },
+          {
+            "bill_id": "B-D30",
+            "due_on": "2026-03-01",
+            "age_days": 30,
+            "bucket": "overdue_1_30",
+            "open_cents": 10000,
+            "open_amount": "100.00"
+          },
+          {
+            "bill_id": "B-D31",
+            "due_on": "2026-02-28",
+            "age_days": 31,
+            "bucket": "overdue_31_60",
+            "open_cents": 10000,
+            "open_amount": "100.00"
+          },
+          {
+            "bill_id": "B-D61",
+            "due_on": "2026-01-29",
+            "age_days": 61,
+            "bucket": "overdue_61_90",
+            "open_cents": 10000,
+            "open_amount": "100.00"
+          },
+          {
+            "bill_id": "B-D91",
+            "due_on": "2025-12-30",
+            "age_days": 91,
+            "bucket": "overdue_91_plus",
+            "open_cents": 10000,
+            "open_amount": "100.00"
+          }
+        ]
+      },
+      "errors": []
+    }
+  ]
+}

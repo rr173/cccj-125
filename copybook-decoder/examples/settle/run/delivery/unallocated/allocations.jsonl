@@ -1,0 +1,1 @@
+{"account": "ACC1", "currency": "CNY", "allocation_id": "A000001", "bill_id": "B1", "receipt_id": "P1", "amount_cents": 10000, "amount": "100.00", "status": "active", "opened_event_id": "B1", "opened_seq": 3, "released_event_id": null, "released_seq": null, "release_reason": null}

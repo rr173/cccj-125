@@ -1,0 +1,4 @@
+{"meta": {"source_file": "part1.jsonl", "line_number": 1}, "fields": {"ID": "e02", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:02Z", "KIND": "BILL", "OID": "B", "AMT": "100.00", "DUE": "2026-01-01"}}
+{"meta": {"source_file": "part1.jsonl", "line_number": 2}, "fields": {"ID": "e05", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:05Z", "KIND": "CANCEL_RECEIPT", "TID": "P"}}
+{"meta": {"source_file": "part1.jsonl", "line_number": 3}, "fields": {"ID": "e07", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:07Z", "KIND": "RECEIPT", "OID": "R", "AMT": "60.00"}}
+{"meta": {"source_file": "part1.jsonl", "line_number": 4}, "fields": {"ID": "e04", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:04Z", "KIND": "RECEIPT", "OID": "Q", "AMT": "50.00"}}

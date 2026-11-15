@@ -1,0 +1,1 @@
+{"account": "GOOD", "currency": "CNY", "allocation_id": "A000001", "bill_id": "GB", "receipt_id": "GP", "amount_cents": 1000, "amount": "10.00", "status": "active", "opened_event_id": "g2", "opened_seq": 2, "released_event_id": null, "released_seq": null, "release_reason": null}

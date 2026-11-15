@@ -1,0 +1,4 @@
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "P2", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:00Z", "KIND": "RECEIPT", "OID": "P2", "AMT": "100.00"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "B2", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:00Z", "KIND": "BILL", "OID": "B2", "AMT": "100.00", "DUE": "2026-02-01"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "P1", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:00Z", "KIND": "RECEIPT", "OID": "P1", "AMT": "100.00"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "B1", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:00Z", "KIND": "BILL", "OID": "B1", "AMT": "100.00", "DUE": "2026-02-01"}}

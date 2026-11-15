@@ -1,0 +1,2 @@
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "p1", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-01T00:00:00Z", "KIND": "RECEIPT", "OID": "P", "AMT": "100.00"}}
+{"meta": {"source_file": "events.jsonl", "line_number": 1}, "fields": {"ID": "b1", "ACCT": "ACC1", "CCY": "CNY", "AT": "2026-01-05T00:00:00Z", "KIND": "BILL", "OID": "B", "AMT": "100.00", "DUE": "2026-02-01"}}

@@ -1,0 +1,140 @@
+{
+  "tool": "copybook-settle",
+  "schema_version": 1,
+  "output_dir": "/workspace/copybook-decoder/examples/settle/run/delivery/unallocated",
+  "files": {
+    "report": "settle_report.json",
+    "events": "events.jsonl",
+    "objects": "objects.jsonl",
+    "allocations": "allocations.jsonl"
+  },
+  "cutoff": {
+    "requested": "2026-02-01T00:00:00Z",
+    "utc": "2026-02-01T00:00:00+00:00",
+    "base_day": "2026-02-01"
+  },
+  "config_paths": {
+    "event_id": [
+      "ID"
+    ],
+    "account": [
+      "ACCT"
+    ],
+    "currency": [
+      "CCY"
+    ],
+    "at": [
+      "AT"
+    ],
+    "kind": [
+      "KIND"
+    ],
+    "object_id": [
+      "OID"
+    ],
+    "amount": [
+      "AMT"
+    ],
+    "due_on": [
+      "DUE"
+    ],
+    "target_id": [
+      "TID"
+    ]
+  },
+  "inputs": [
+    "/workspace/copybook-decoder/examples/settle/run/data/unallocated/events.jsonl"
+  ],
+  "event_count": 3,
+  "applied_event_count": 3,
+  "post_cutoff_event_count": 0,
+  "group_count": 1,
+  "valid_group_count": 1,
+  "invalid_group_count": 0,
+  "conclusion": "settled",
+  "totals_by_currency": {
+    "CNY": {
+      "bill_original_cents": 10000,
+      "bill_open_cents": 0,
+      "receipt_original_cents": 12550,
+      "receipt_unallocated_cents": 2550,
+      "active_allocation_cents": 10000,
+      "bill_open_amount": "0.00",
+      "receipt_unallocated_amount": "25.50",
+      "active_allocation_amount": "100.00"
+    }
+  },
+  "aging_buckets": {
+    "ACC1|CNY": {
+      "not_due": {
+        "cents": 0,
+        "amount": "0.00"
+      },
+      "overdue_1_30": {
+        "cents": 0,
+        "amount": "0.00"
+      },
+      "overdue_31_60": {
+        "cents": 0,
+        "amount": "0.00"
+      },
+      "overdue_61_90": {
+        "cents": 0,
+        "amount": "0.00"
+      },
+      "overdue_91_plus": {
+        "cents": 0,
+        "amount": "0.00"
+      }
+    }
+  },
+  "groups": [
+    {
+      "account": "ACC1",
+      "currency": "CNY",
+      "status": "valid",
+      "applied_event_count": 3,
+      "post_cutoff_event_count": 0,
+      "bill_count": 1,
+      "receipt_count": 2,
+      "active_allocation_count": 1,
+      "conservation": {
+        "bill_original_cents": 10000,
+        "bill_open_cents": 0,
+        "receipt_original_cents": 12550,
+        "receipt_unallocated_cents": 2550,
+        "active_allocation_cents": 10000,
+        "bill_invariant_ok": true,
+        "receipt_invariant_ok": true
+      },
+      "aging": {
+        "base_day": "2026-02-01",
+        "bucket_cents": {
+          "not_due": 0,
+          "overdue_1_30": 0,
+          "overdue_31_60": 0,
+          "overdue_61_90": 0,
+          "overdue_91_plus": 0
+        },
+        "bucket_amounts": {
+          "not_due": "0.00",
+          "overdue_1_30": "0.00",
+          "overdue_31_60": "0.00",
+          "overdue_61_90": "0.00",
+          "overdue_91_plus": "0.00"
+        },
+        "details": [
+          {
+            "bill_id": "B1",
+            "due_on": "2026-02-01",
+            "age_days": 0,
+            "bucket": "not_due",
+            "open_cents": 0,
+            "open_amount": "0.00"
+          }
+        ]
+      },
+      "errors": []
+    }
+  ]
+}
