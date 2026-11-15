@@ -26,6 +26,7 @@ from .relation import (EXIT_BUSINESS_REJECT as EXIT_ADMIT_REJECT,
 from .relation import (RelationConfigError, RelationInputError,
                       RelationQueryError, RelationContract)
 from .relation import explain_row, get_proof_node, iter_kept_rows, run_admission
+from .rewrite import RewriteError, rewrite_original
 from .settle import (EXIT_BUSINESS_REJECT as EXIT_SETTLE_REJECT,
                      EXIT_CANNOT_PROCESS as EXIT_SETTLE_FAILED)
 from .settle import (SettleConfig, SettleConfigError, SettleInputError,
@@ -246,6 +247,28 @@ def main(argv=None) -> int:
                     help="print the commit graph in parents-first order")
     _add_git_limits(gq)
 
+    rw = sub.add_parser(
+        "rewrite",
+        help="write confirmed field corrections back onto the original "
+             "binary at fixed byte positions, emitting a new original plus "
+             "byte-change evidence")
+    rw.add_argument("order", help="UTF-8 JSON correction order")
+    rw.add_argument("source", help="the original binary file (read-only)")
+    rw.add_argument("--out-dir", required=True,
+                    help="new delivery directory (must not exist yet)")
+    rw.add_argument("--temp-dir", required=True,
+                    help="base directory for staging; only the unique "
+                         "subdirectory created for this run is cleaned up")
+    rw.add_argument("--chunk-size", type=int, default=None,
+                    help="streaming read/write block size in bytes "
+                         "(default 1048576 = 1 MiB)")
+    rw.add_argument("--max-record-bytes", type=int, default=None,
+                    help="hard limit on one resident target record "
+                         "(default 16777216 = 16 MiB)")
+    rw.add_argument("--copybook-base",
+                    help="base directory for relative copybook paths in "
+                         "the order (default: the order file's directory)")
+
     args = parser.parse_args(argv)
     if args.command == "decode":
         return _run_decode(args)
@@ -269,6 +292,8 @@ def main(argv=None) -> int:
         return _run_git_export(args)
     if args.command == "git-query":
         return _run_git_query(args)
+    if args.command == "rewrite":
+        return _run_rewrite(args)
     return _run_impact(args)
 
 
@@ -593,6 +618,41 @@ def _run_git_query(args) -> int:
                    "changes": diff["changes"]}
             print(json.dumps(row, ensure_ascii=False))
     return EXIT_GIT_OK
+
+
+def _run_rewrite(args) -> int:
+    kwargs = {}
+    if args.chunk_size is not None:
+        kwargs["chunk_size"] = args.chunk_size
+    if args.max_record_bytes is not None:
+        kwargs["max_record_bytes"] = args.max_record_bytes
+    if args.copybook_base is not None:
+        kwargs["copybook_base"] = args.copybook_base
+    try:
+        evidence = rewrite_original(
+            args.order, source_path=args.source,
+            output_dir=args.out_dir, temp_dir=args.temp_dir, **kwargs)
+    except RewriteError as exc:
+        print(f"error: rewrite refused: {exc}", file=sys.stderr)
+        return EXIT_CANNOT_VALIDATE
+    except OSError as exc:
+        print(f"error: rewrite I/O failure: {exc}", file=sys.stderr)
+        return EXIT_CANNOT_VALIDATE
+    counts = evidence["counts"]
+    print("conclusion  : rewritten")
+    print(f"input       : {evidence['input']['path']} "
+          f"({evidence['input']['length_bytes']} bytes, "
+          f"sha256 {evidence['input']['sha256']})")
+    print(f"output      : {args.out_dir}/{evidence['output']['file']} "
+          f"(sha256 {evidence['output']['sha256']})")
+    print(f"records     : {evidence['record_count']} target record(s), "
+          f"{counts['requested_fields']} requested field edit(s)")
+    print(f"bytes       : {counts['covered_bytes']} covered, "
+          f"{counts['changed_bytes']} actually changed, "
+          f"{len(evidence['change_intervals'])} change interval(s)")
+    print("evidence    : "
+          f"{args.out_dir}/rewrite_evidence.json")
+    return EXIT_OK
 
 
 if __name__ == "__main__":

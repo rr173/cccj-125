@@ -1,0 +1,95 @@
+{
+  "format": "copybook-rewrite/v1",
+  "input": {
+    "path": "/workspace/scratch/perf-smoke/large_original.bin",
+    "sha256": "266eb097491699d1ee4e1108419ff3cd89f05641b322043a46d9e110f0660fc0",
+    "length_bytes": 2097128
+  },
+  "output": {
+    "file": "original.rewritten.bin",
+    "sha256": "4def449288ea54788654e3e04f63bbd463e26f30afbd3819b82e5bf4a4e66212",
+    "length_bytes": 2097128
+  },
+  "layouts": {
+    "A": {
+      "copybook_path": "/workspace/scratch/perf-smoke/copybooks/ORDA.cpy",
+      "copybook_sha256": "36820bd0ff2c4fd880bcda36fdc6d148430a7bf8caa29983af9efcbf14147249",
+      "layout_name": "ORD-A",
+      "layout_version": "1",
+      "codec": "cp037",
+      "record_length": 44
+    }
+  },
+  "declared_source_sha256": "266eb097491699d1ee4e1108419ff3cd89f05641b322043a46d9e110f0660fc0",
+  "record_count": 3,
+  "edits": [
+    {
+      "path": [
+        "FLAG"
+      ],
+      "record_byte_start": 0,
+      "record_byte_end": 44,
+      "layout": "A",
+      "field_byte_start": 43,
+      "field_byte_end": 44,
+      "old_hex": "f1",
+      "requested_hex": "f8",
+      "value": "8"
+    },
+    {
+      "path": [
+        "FLAG"
+      ],
+      "record_byte_start": 1048564,
+      "record_byte_end": 1048608,
+      "layout": "A",
+      "field_byte_start": 1048607,
+      "field_byte_end": 1048608,
+      "old_hex": "f1",
+      "requested_hex": "f8",
+      "value": "8"
+    },
+    {
+      "path": [
+        "FLAG"
+      ],
+      "record_byte_start": 2097084,
+      "record_byte_end": 2097128,
+      "layout": "A",
+      "field_byte_start": 2097127,
+      "field_byte_end": 2097128,
+      "old_hex": "f1",
+      "requested_hex": "f8",
+      "value": "8"
+    }
+  ],
+  "change_intervals": [
+    {
+      "byte_start": 43,
+      "byte_end": 44,
+      "before_hex": "f1",
+      "after_hex": "f8"
+    },
+    {
+      "byte_start": 1048607,
+      "byte_end": 1048608,
+      "before_hex": "f1",
+      "after_hex": "f8"
+    },
+    {
+      "byte_start": 2097127,
+      "byte_end": 2097128,
+      "before_hex": "f1",
+      "after_hex": "f8"
+    }
+  ],
+  "counts": {
+    "requested_fields": 3,
+    "covered_bytes": 3,
+    "changed_bytes": 3
+  },
+  "limits": {
+    "chunk_size": 1048576,
+    "max_record_bytes": 16777216
+  }
+}

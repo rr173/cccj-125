@@ -1,0 +1,32 @@
+{
+  "requested_size_mib": 2,
+  "record_count": 47662,
+  "actual_size_bytes": 2097128,
+  "actual_size_mib": 1.9999771118164062,
+  "target_records": [
+    0,
+    23831,
+    47661
+  ],
+  "build_seconds": 0.02,
+  "rewrite_seconds": 0.036,
+  "verify_seconds": 0.074,
+  "rss_before_kib": 20612,
+  "rss_after_build_kib": 21436,
+  "rss_peak_kib": 23836,
+  "rss_peak_mib": 23.28,
+  "file_resident_ratio": 11.6388,
+  "verification": {
+    "diff_count": 3,
+    "positions": [
+      43,
+      1048607,
+      2097127
+    ]
+  },
+  "evidence_counts": {
+    "requested_fields": 3,
+    "covered_bytes": 3,
+    "changed_bytes": 3
+  }
+}

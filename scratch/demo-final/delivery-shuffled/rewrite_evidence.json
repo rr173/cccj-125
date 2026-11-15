@@ -1,0 +1,185 @@
+{
+  "format": "copybook-rewrite/v1",
+  "input": {
+    "path": "/workspace/scratch/demo-final/original.bin",
+    "sha256": "49330f337f78b6a2aa686da10557ead5014916b9f9bb74644563cad1d51ddc35",
+    "length_bytes": 123
+  },
+  "output": {
+    "file": "original.rewritten.bin",
+    "sha256": "5cc7bf82e15fcae8f05143ae8c3e7b686093e470f48428af77c621c0a63ae485",
+    "length_bytes": 123
+  },
+  "layouts": {
+    "A": {
+      "copybook_path": "/workspace/scratch/demo-final/copybooks/ORDA.cpy",
+      "copybook_sha256": "36820bd0ff2c4fd880bcda36fdc6d148430a7bf8caa29983af9efcbf14147249",
+      "layout_name": "ORD-A",
+      "layout_version": "1",
+      "codec": "cp037",
+      "record_length": 44
+    },
+    "B": {
+      "copybook_path": "/workspace/scratch/demo-final/copybooks/SUMB.cpy",
+      "copybook_sha256": "f91a919cd682223a3399ed7159e772825071c4720ad957178c6ce321c66036d9",
+      "layout_name": "SUM-B",
+      "layout_version": "1",
+      "codec": "cp500",
+      "record_length": 50
+    }
+  },
+  "declared_source_sha256": "49330f337f78b6a2aa686da10557ead5014916b9f9bb74644563cad1d51ddc35",
+  "record_count": 2,
+  "edits": [
+    {
+      "path": [
+        "CUSTOMER-NAME"
+      ],
+      "record_byte_start": 6,
+      "record_byte_end": 50,
+      "layout": "A",
+      "field_byte_start": 14,
+      "field_byte_end": 26,
+      "old_hex": "c1c3d4c540c3d6d9d7404040",
+      "requested_hex": "c1c3d4c540c9d5c340404040",
+      "value": "ACME INC"
+    },
+    {
+      "path": [
+        "ITEM-GROUP",
+        0,
+        "ITEM-AMOUNT"
+      ],
+      "record_byte_start": 6,
+      "record_byte_end": 50,
+      "layout": "A",
+      "field_byte_start": 30,
+      "field_byte_end": 34,
+      "old_hex": "0012345c",
+      "requested_hex": "0040504c",
+      "value": "405.04"
+    },
+    {
+      "path": [
+        "ITEM-GROUP",
+        0,
+        "ITEM-NOTE"
+      ],
+      "record_byte_start": 6,
+      "record_byte_end": 50,
+      "layout": "A",
+      "field_byte_start": 30,
+      "field_byte_end": 34,
+      "old_hex": "0012345c",
+      "requested_hex": "0040504c",
+      "value": "\u0000 &<"
+    },
+    {
+      "path": [
+        "FLAG"
+      ],
+      "record_byte_start": 6,
+      "record_byte_end": 50,
+      "layout": "A",
+      "field_byte_start": 49,
+      "field_byte_end": 50,
+      "old_hex": "f7",
+      "requested_hex": "f9",
+      "value": "9"
+    },
+    {
+      "path": [
+        "BATCH-GROUP",
+        2,
+        "BATCH-AMT"
+      ],
+      "record_byte_start": 64,
+      "record_byte_end": 114,
+      "layout": "B",
+      "field_byte_start": 88,
+      "field_byte_end": 94,
+      "old_hex": "00000000000c",
+      "requested_hex": "00000001234c",
+      "value": "12.34"
+    },
+    {
+      "path": [
+        "REMARK"
+      ],
+      "record_byte_start": 64,
+      "record_byte_end": 114,
+      "layout": "B",
+      "field_byte_start": 97,
+      "field_byte_end": 107,
+      "old_hex": "c8c5d3d3d64040404040",
+      "requested_hex": "e6d6d9d3c44040404040",
+      "value": "WORLD"
+    },
+    {
+      "path": [
+        "ZONED-AMT"
+      ],
+      "record_byte_start": 64,
+      "record_byte_end": 114,
+      "layout": "B",
+      "field_byte_start": 107,
+      "field_byte_end": 114,
+      "old_hex": "f0f0f0f1f2f3d4",
+      "requested_hex": "f0f0f0f0f0f0c0",
+      "value": "0.00"
+    }
+  ],
+  "change_intervals": [
+    {
+      "byte_start": 19,
+      "byte_end": 23,
+      "before_hex": "c3d6d9d7",
+      "after_hex": "c9d5c340"
+    },
+    {
+      "byte_start": 31,
+      "byte_end": 34,
+      "before_hex": "12345c",
+      "after_hex": "40504c"
+    },
+    {
+      "byte_start": 49,
+      "byte_end": 50,
+      "before_hex": "f7",
+      "after_hex": "f9"
+    },
+    {
+      "byte_start": 91,
+      "byte_end": 94,
+      "before_hex": "00000c",
+      "after_hex": "01234c"
+    },
+    {
+      "byte_start": 97,
+      "byte_end": 100,
+      "before_hex": "c8c5d3",
+      "after_hex": "e6d6d9"
+    },
+    {
+      "byte_start": 101,
+      "byte_end": 102,
+      "before_hex": "d6",
+      "after_hex": "c4"
+    },
+    {
+      "byte_start": 110,
+      "byte_end": 114,
+      "before_hex": "f1f2f3d4",
+      "after_hex": "f0f0f0c0"
+    }
+  ],
+  "counts": {
+    "requested_fields": 7,
+    "covered_bytes": 40,
+    "changed_bytes": 19
+  },
+  "limits": {
+    "chunk_size": 1048576,
+    "max_record_bytes": 16777216
+  }
+}

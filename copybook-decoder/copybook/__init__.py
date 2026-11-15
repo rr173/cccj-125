@@ -1,6 +1,6 @@
 """Copybook decoder for legacy fixed-width EBCDIC data exchange."""
 
-from . import audit, gitkit, impact, mask, settle
+from . import audit, gitkit, impact, mask, rewrite, settle
 from .decoder import Decoder, RedefinesPolicy
 from .errors import (CopybookError, CopybookSyntaxError, FieldDecodeError,
                      ManifestError, RecordLengthError)
@@ -18,5 +18,5 @@ __all__ = [
     "Decoder", "Field", "FieldDecodeError", "Layout", "LayoutRef",
     "LayoutRegistry", "Manifest", "ManifestError", "Pic", "QuarantinedLine",
     "RecordLengthError", "RedefinesPolicy", "audit", "decode_file",
-    "gitkit", "impact", "mask", "parse_copybook", "settle",
+    "gitkit", "impact", "mask", "parse_copybook", "rewrite", "settle",
 ]

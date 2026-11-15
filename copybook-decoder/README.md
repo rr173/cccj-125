@@ -44,9 +44,15 @@ copybook/            解码器包
     loading.py       流式 JSONL 载入、meta/身份/重复成员校验、第 0 层局部诊断
     engine.py        半朴素批量固定点消除（SQLite 落盘、有界批次、证明与见证）
     query.py         仅凭交付目录解释一行、读证明节点、逐表读取获准行
+  rewrite/           原件定点回写：更正单 -> 只改指定字段字节的新原件 + 凭据
+    strictjson.py    拒绝重复成员/NaN/Infinity/float 的严格 JSON 加载
+    order.py         更正单模式、坐标与记录长度校验、布局目录编译
+    pathres.py       路径解析（OCCURS 索引、REDEFINES 视图、禁写组/FILLER）
+    encoder.py       按 PIC 容量的规范字节编码（60+ 位精确、cp037/cp500）
+    engine.py        三遍流式：摘要核对 -> 字节要求/冲突 -> 分块回写
   __main__.py        CLI（decode / audit / impact / mask / settle / trace /
                      admit / admit-explain / admit-table /
-                     git-ingest / git-export / git-query）
+                     git-ingest / git-export / git-query / rewrite）
 examples/            示例 Copybook、清单、数据生成器、交接场景、影响报告场景、
                      脱敏场景、Git 交接演示与压测
 tests/               unittest 测试套件与字节构造夹具
@@ -847,6 +853,86 @@ python3 examples/git/run_performance.py    # 大包峰值 RSS、暂存量与上�
   被执行。
 - `run_performance.py` 用约 96 MiB 解压量、2000 个无关 blob 的包记录实际
   峰值 RSS 与暂存量（远低于解压总量），并验证上限触发后不留下报告或暂存。
+
+## 原件定点回写（rewrite）
+
+接收人员确认的少量更正需要送回供应商时，`copybook rewrite` 把更正**按字节定点写回
+原件**，而不是重新编码整条记录：只改每个被确认字段占据的字节，填充区、未选中的
+REDEFINES 视图、非标准但合法的符号写法都原样保留。它读取原始二进制和一份 UTF-8
+JSON 更正单，产出一个新目录，内含与原件等长的新原件和机器可读的字节变更凭据。
+
+```bash
+python3 -m copybook rewrite order.json ORIGINAL.bin \
+    --out-dir delivery/2026-11-15/ --temp-dir /var/tmp/rewrite-tmp/ \
+    --copybook-base copybooks/
+```
+
+Python 接口：
+
+```python
+from copybook.rewrite import rewrite_original
+
+evidence = rewrite_original(
+    "order.json", source_path="ORIGINAL.bin",
+    output_dir="delivery/2026-11-15/", temp_dir="/var/tmp/rewrite-tmp/",
+    copybook_base="copybooks/")
+# 新原件在 output_dir/original.rewritten.bin，凭据在
+# output_dir/rewrite_evidence.json；evidence 即写出的凭据对象。
+```
+
+### 更正单与坐标
+
+更正单顶层给原件完整 `source_sha256`、具名 `layouts` 目录（每条给 Copybook 路径、
+布局名/版本、`codec`，仅支持 `cp037`/`cp500`，同一原件可混合布局）和 `records`
+列表。每条记录给从文件起点算的 `byte_start/byte_end` 半开区间、布局条目、该跨度的
+`record_sha256` 和 `edits`。坐标是非负整数（bool 不算整数），区间长度必须等于解析
+所得 `record_length`，不能越界，记录区间互不重叠或重复；列表可乱序。区间之间的头、
+换行、填充等字节直接保留，不靠换行找边界，COMP-3 中恰好为 `0A` 的字节也不会切开
+记录。原件可有未列出的记录，`records`/`edits` 均可为空。顶层与各记录摘要都对实际
+字节重新计算核对，绝不拿声明值代替计算值。
+
+每个 edit 给 `path`、`expected_hex`、`value`。`path` 从记录根组的孩子起算：命名层
+用大写字段名，固定 `OCCURS > 1` 的数组层用从 0 开始的整数（嵌套 OCCURS 每层都要
+指定，不能凭末级同名字段猜位置）；只能定位到非 FILLER 基本字段，组、整数组、匿名
+填充项不可写；REDEFINES 基字段与任一替代视图都可显式指定，不从判别字段或内容猜选。
+`expected_hex` 必须恰好覆盖该字段原字节并对未修改的原件逐条核对，前一项更正不会
+成为后一项的“原值”。路径不存在/不唯一、类型错误、旧值不符、未知布局、缺成员都拒绝
+整次作业；JSON 重复成员、`NaN`/`Infinity`、浮点数同样拒绝。
+
+### 严格编码与重叠合同
+
+新值按现有 PIC 的字节容量严格编码。`PIC X/A` 只接受字符串，按单字节编码转换后右补
+该编码空格，不截断、不替换不可编码字符、不隐式转字符串；`PIC 9/S9`（可含 `V`）只
+接受 `-?[0-9]+(?:\.[0-9]+)?` 十进制字符串，小数位可少于 scale 右补零、超出 scale
+（哪怕多的是零）拒绝，精确缩放后绝对值必须小于 `10**总位数`，无符号 PIC 拒绝任何
+负值（含 `-0`），有符号负零按非负零写。运算只用整数/字符串，不依赖 Decimal 的
+28 位精度，可处理 60 位以上数字。DISPLAY 带符号末位用正 C/负 D overpunch，无符号
+用普通 F 区位；COMP-3 前置填充半字节写 0，末半字节有符号 C/D、无符号 F。
+
+同记录的更正不是顺序覆盖：每个 edit 是对完整字段跨度的字节要求，两个跨度重叠时仅当
+公共位置要求的新字节逐一相同才一起生效，一致重叠合法、不一致拒绝整次作业，重复同一
+路径同此规则；该合同覆盖基字段与替代视图、长度不同的视图和重复组内重定义。
+
+### 凭据、边界与退出码
+
+凭据含实际输入/输出 SHA-256 与长度、布局文件 SHA-256 及名称版本、每个 edit 的完整
+路径/记录坐标/绝对字段范围/旧字节/要求新字节，以及按绝对坐标排序、互不交叠、相邻
+合并的实际变化区间（夹着未变字节会分段，只含真变化字节）和请求字段数、覆盖字节数
+（重叠只计一次）、真正改变字节数；不保存整份原件或每个未改字节。输出目录必须不存在，
+输入和布局只读，暂存由调用者给位置且只清理自己创建的子目录；原件按块流式处理、不
+整份常驻，单记录上限默认 16 MiB 且在分配前检查。任何摘要不合、越界、冲突或写出失败
+都返回非零（退出码 `2`），不留下可当成完成的交付；成功为 `0`。
+
+```bash
+python3 examples/rewrite/run_demo.py --workdir /tmp/rewrite-demo
+python3 tests/rewrite/run_performance.py --size-mib 270 --workdir /tmp/rewrite-perf
+```
+
+演示先手算目标字段偏移与新旧十六进制再实际回写，覆盖一个未改符号字段字节保持原样、
+金额视图与文本视图公共字节一致时成功而冲突时整次失败、两项 `expected_hex` 都基于
+原件且交换 edit 顺序结果不变，并对 60 位数、定点小数、cp500 文本做独立字节核对，
+最后把一段结果交给现有 `Decoder` 复核业务值。压测实跑大于 256 MiB 的原件、稀疏更正
+首中尾记录，报告实际大小、峰值内存与耗时，并独立逐字节比较差异集合与凭据区间。
 
 ## 测试
 
