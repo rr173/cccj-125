@@ -1,6 +1,7 @@
 """Command line interface: decode data files, audit batch handoffs,
-report the impact of layout changes between two receiving manifests, and
-generate de-identified samples from decoded records."""
+report the impact of layout changes between two receiving manifests,
+generate de-identified samples from decoded records, replay open-item
+settlement, and read offline Git handoff bundles."""
 
 from __future__ import annotations
 
@@ -12,6 +13,9 @@ from pathlib import Path
 from .audit import (AuditConfig, AuditConfigError, AuditInputError,
                     BUSINESS_REJECTED, run_audit)
 from .errors import CopybookError
+from .gitkit import (EXIT_UNUSABLE as EXIT_GIT_UNUSABLE,
+                     GitHandoffError, export_blob, ingest_handoff,
+                     inspect_handoff)
 from .impact import (COMPATIBLE, INCOMPATIBLE, ImpactError,
                      run_impact_report)
 from .manifest import Manifest
@@ -32,6 +36,10 @@ EXIT_CANNOT_VALIDATE = 2   # input evidence or configuration is unusable
 EXIT_IMPACT_COMPATIBLE = 0     # every affected date range stays compatible
 EXIT_IMPACT_INCOMPATIBLE = 1   # report written; breaking changes found
 EXIT_IMPACT_UNVERIFIABLE = 2   # problems prevent a complete comparison
+
+# Exit codes for the git subcommands.
+EXIT_GIT_OK = 0                # bundle verified and facts delivered
+
 
 # Exit codes for the mask subcommand.
 EXIT_MASK_OK = 0               # masked dataset delivered
@@ -145,6 +153,59 @@ def main(argv=None) -> int:
                      help="disambiguate when the id exists in both "
                           "namespaces")
 
+    git = sub.add_parser(
+        "git-ingest",
+        help="verify a self-contained Git bundle v2 offline and write its "
+             "commit graph, per-commit file listings and per-parent diffs "
+             "(no git/libgit2, no checkout)")
+    git.add_argument("bundle", help="path to a self-contained v2 bundle")
+    git.add_argument("--out-dir", required=True,
+                     help="new fact directory (must not exist yet)")
+    git.add_argument("--temp-dir", required=True,
+                     help="base directory for the object staging area; only "
+                          "the unique subdirectory created for this run is "
+                          "cleaned up")
+    git.add_argument("--commit", action="append", default=None,
+                     metavar="ID",
+                     help="restrict listings/diffs to this commit "
+                          "(repeatable; default: every reachable commit)")
+    _add_git_limits(git)
+
+    gx = sub.add_parser(
+        "git-export",
+        help="extract one regular/executable blob at an exact path in one "
+             "commit as a new file, with an export manifest")
+    gx.add_argument("bundle", help="path to a self-contained v2 bundle")
+    gx.add_argument("commit_id", help="40-hex commit id reachable from a ref")
+    gx.add_argument("--path", required=True,
+                    help="lossless path: each raw name component "
+                         "base64-encoded, joined by '/' (e.g. YWxwaGEudHh0 "
+                         "for 'alpha.txt')")
+    gx.add_argument("--out", required=True,
+                    help="new destination file (must not exist)")
+    gx.add_argument("--temp-dir", required=True,
+                    help="base directory for the object staging area")
+    _add_git_limits(gx)
+
+    gq = sub.add_parser(
+        "git-query",
+        help="answer commit/path queries against a bundle without writing "
+             "an output directory")
+    gq.add_argument("bundle", help="path to a self-contained v2 bundle")
+    gq.add_argument("--temp-dir", required=True,
+                    help="base directory for the object staging area")
+    gq.add_argument("--commit",
+                    help="commit id for --files/--diff (default: a ref's "
+                         "tip when --log is not requested)")
+    gq.add_argument("--files", action="store_true",
+                    help="print the complete file listing of --commit")
+    gq.add_argument("--diff", action="store_true",
+                    help="print the change list of --commit against each "
+                         "parent")
+    gq.add_argument("--log", action="store_true",
+                    help="print the commit graph in parents-first order")
+    _add_git_limits(gq)
+
     args = parser.parse_args(argv)
     if args.command == "decode":
         return _run_decode(args)
@@ -156,6 +217,12 @@ def main(argv=None) -> int:
         return _run_settle(args)
     if args.command == "trace":
         return _run_trace(args)
+    if args.command == "git-ingest":
+        return _run_git_ingest(args)
+    if args.command == "git-export":
+        return _run_git_export(args)
+    if args.command == "git-query":
+        return _run_git_query(args)
     return _run_impact(args)
 
 
@@ -313,6 +380,113 @@ def _run_impact(args) -> int:
     if summary["conclusion"] == INCOMPATIBLE:
         return EXIT_IMPACT_INCOMPATIBLE
     return EXIT_IMPACT_UNVERIFIABLE
+
+
+def _add_git_limits(parser) -> None:
+    parser.add_argument("--max-object-bytes", type=int, default=None,
+                        help="hard limit on one inflated object "
+                             "(default 67108864 = 64 MiB)")
+    parser.add_argument("--max-total-bytes", type=int, default=None,
+                        help="hard limit on cumulative inflated/staged "
+                             "bytes (default 1073741824 = 1 GiB)")
+    parser.add_argument("--max-objects", type=int, default=None,
+                        help="hard limit on pack object count "
+                             "(default 1000000)")
+    parser.add_argument("--max-delta-depth", type=int, default=None,
+                        help="hard limit on delta chain depth (default 64)")
+
+
+def _git_limit_kwargs(args) -> dict:
+    return {
+        "max_object_bytes": args.max_object_bytes,
+        "max_total_bytes": args.max_total_bytes,
+        "max_objects": args.max_objects,
+        "max_delta_depth": args.max_delta_depth,
+    }
+
+
+def _run_git_ingest(args) -> int:
+    try:
+        summary = ingest_handoff(
+            args.bundle, output_dir=args.out_dir, temp_dir=args.temp_dir,
+            commit_ids=args.commit, **_git_limit_kwargs(args))
+    except GitHandoffError as exc:
+        print(f"error: cannot ingest bundle: {exc}", file=sys.stderr)
+        return EXIT_GIT_UNUSABLE
+    except OSError as exc:
+        print(f"error: cannot ingest bundle: {exc}", file=sys.stderr)
+        return EXIT_GIT_UNUSABLE
+    print(f"conclusion  : {summary['conclusion']}")
+    print(f"bundle sha1 : {summary['bundle_sha1']}")
+    print(f"refs        : {summary['ref_count']}")
+    print(f"commits     : {summary['commit_count']} reachable, "
+          f"{summary['listed_commit_count']} listed")
+    print(f"objects     : {summary['object_count']}")
+    print(f"report      : {summary['report']}")
+    print(f"commits     : {summary['commits']}")
+    print(f"files/diffs : {Path(args.out_dir) / 'commits'}/")
+    return EXIT_GIT_OK
+
+
+def _run_git_export(args) -> int:
+    try:
+        manifest = export_blob(
+            args.bundle, commit_id=args.commit_id, path=args.path,
+            destination=args.out, temp_dir=args.temp_dir,
+            **_git_limit_kwargs(args))
+    except GitHandoffError as exc:
+        print(f"error: cannot export: {exc}", file=sys.stderr)
+        return EXIT_GIT_UNUSABLE
+    except OSError as exc:
+        print(f"error: cannot export: {exc}", file=sys.stderr)
+        return EXIT_GIT_UNUSABLE
+    print(f"conclusion  : {manifest['conclusion']}")
+    print(f"path        : {manifest['path']['display']} "
+          f"(b64 {manifest['path']['b64']})")
+    print(f"commit      : {manifest['commit']}")
+    print(f"blob        : {manifest['blob']['object_id']} "
+          f"({manifest['blob']['size']} bytes)")
+    print(f"mode        : {manifest['mode']} ({manifest['kind']})")
+    print(f"written     : {args.out}")
+    print(f"manifest    : {args.out}.export_manifest.json")
+    return EXIT_GIT_OK
+
+
+def _run_git_query(args) -> int:
+    if not (args.log or args.files or args.diff):
+        print("error: choose at least one of --log, --files, --diff",
+              file=sys.stderr)
+        return EXIT_GIT_UNUSABLE
+    if (args.files or args.diff) and not args.commit:
+        print("error: --files/--diff need --commit", file=sys.stderr)
+        return EXIT_GIT_UNUSABLE
+    selected = None if args.log else (
+        [args.commit] if args.commit else None)
+    try:
+        report = inspect_handoff(
+            args.bundle, temp_dir=args.temp_dir,
+            commit_ids=selected, include_diffs=args.diff,
+            **_git_limit_kwargs(args))
+    except GitHandoffError as exc:
+        print(f"error: cannot query bundle: {exc}", file=sys.stderr)
+        return EXIT_GIT_UNUSABLE
+    if args.log:
+        for commit in report["commits"]:
+            parents = " ".join(commit["parents"]) or "-"
+            refs = ",".join(commit["refs"])
+            print(f"{commit['object_id']} parents={parents} refs={refs}")
+    if args.files:
+        listing = report["file_listings"][args.commit]
+        for fact in listing["files"]:
+            print(json.dumps(fact, ensure_ascii=False))
+    if args.diff:
+        for diff in report["diffs"][args.commit]:
+            row = {"parent_index": diff["parent_index"],
+                   "parent": diff["parent"],
+                   "change_count": diff["change_count"],
+                   "changes": diff["changes"]}
+            print(json.dumps(row, ensure_ascii=False))
+    return EXIT_GIT_OK
 
 
 if __name__ == "__main__":

@@ -32,9 +32,17 @@ copybook/            解码器包
     ledger.py        单账号币种账本：开立/撤销/自动核销/释放再分配/守恒与账龄
     engine.py        分组重放、截止时点装配、结果目录交付（拒绝覆盖）
     trace.py         仅凭结果目录追查单个账单/收款的事件与全部核销履历
-  __main__.py        CLI（decode / audit / impact / mask / settle / trace）
+  gitkit/            离线 Git 交接资料接入（bundle v2 / PACK / delta / 提交图）
+    bundle.py        bundle 头尾校验、PACK 框架与每个 zlib 流边界
+    pack.py          对象 ID 重算、OFS/REF_DELTA 链、暂存与资源上限
+    objects.py       commit/tree 严格解析（原始头、续行、原始路径字节）
+    graph.py         全 ref 可达提交图与拓扑序、tree 遍历
+    diff.py          按完整路径对每个 parent 的变化
+    handoff.py       事实目录交付、单 blob 导出与导出清单
+  __main__.py        CLI（decode / audit / impact / mask / settle / trace /
+                     git-ingest / git-export / git-query）
 examples/            示例 Copybook、清单、数据生成器、交接场景、影响报告场景、
-                     脱敏场景与压测
+                     脱敏场景、Git 交接演示与压测
 tests/               unittest 测试套件与字节构造夹具
 ```
 
@@ -631,6 +639,187 @@ python3 examples/settle/run_scenarios.py    # 跑 settle/trace 并对照手工�
 桶、未分配资金、超 64 位金额，以及双重撤销、向后引用、组末业务错（好组仍正确、坏组
 无部分余额）、输入重排不改去向、坏 JSON/重复事件阻止整次交付、既有目录不被覆盖。
 
+## 离线 Git 交接资料接入（git-ingest / git-export / git-query）
+
+供应商把每日原始流水和配套布局放进 Git 仓库，隔离网只能收到一个自包含
+bundle。`copybook git-ingest` 把交接包转换成**可查询的提交、目录和文件版本
+事实**；`copybook git-export` 按指定提交和精确路径取出一个原始 blob 写成
+新文件，供已有 `decode` 入口使用。它不解释文件里的业务字段，不接远程代码
+托管，也**不调用** `git`、libgit2、Dulwich 等实现——bundle、PACK、delta 和
+对象负载全部由本包用 Python 标准库自行解析。
+
+```bash
+# 校验并落盘事实（输出目录必须不存在）
+python3 -m copybook git-ingest handoff.bundle \
+    --out-dir delivery/handoff-2024-06-15/ --temp-dir /var/tmp/copybook-git/
+# 只看父图/清单/差异，不落盘
+python3 -m copybook git-query handoff.bundle --temp-dir /var/tmp/copybook-git/ --log
+python3 -m copybook git-query handoff.bundle --temp-dir /var/tmp/copybook-git/ \
+    --commit <40-hex> --files
+python3 -m copybook git-query handoff.bundle --temp-dir /var/tmp/copybook-git/ \
+    --commit <40-hex> --diff
+# 取出一个普通/可执行文件（路径为无损 base64 分量，见下）
+python3 -m copybook git-export handoff.bundle <40-hex> \
+    --path ZXhhbXBsZXM=/ZGF0YQ==/QkFOS0EtMjAyNDA2MTUuZGF0 \
+    --out delivery/feeds/BANKA-20240615.dat --temp-dir /var/tmp/copybook-git/
+```
+
+Python 接口：
+
+```python
+from copybook.gitkit import (inspect_handoff, ingest_handoff, export_blob,
+                             encode_path)
+
+# 事实目录：handoff_report.json + commits.jsonl + commits/<id>.*.jsonl
+summary = ingest_handoff("handoff.bundle", output_dir="delivery/facts/",
+                         temp_dir="/var/tmp/copybook-git/")
+report = inspect_handoff("handoff.bundle", temp_dir="/var/tmp/copybook-git/")
+manifest = export_blob("handoff.bundle", commit_id="...",
+                       path=encode_path([b"examples", b"data",
+                                         b"BANKA-20240615.dat"]),
+                       destination="delivery/BANKA-20240615.dat",
+                       temp_dir="/var/tmp/copybook-git/")
+```
+
+### 接收范围与容器校验
+
+- **只接受自包含 Git bundle v2**：首行必须是 `# v2 git bundle`；`v3`、
+  `@object-format=sha256` 等能力行、64 位十六进制对象 ID、任何
+  `-<hex>` prerequisite 行都在处理第一个对象**之前**拒绝。ref 必须是
+  完整的 `refs/...`（或 `HEAD`）且指向 commit；指向 tree/blob/tag 的 ref
+  拒绝。内部 PACK 必须用版本 2。
+- 校验分四层，任何一层失败都不返回部分结果：bundle 头；PACK 签名/版本/
+  对象数字段；**每个 zlib 压缩流的边界和声明大小**（流必须恰好在下一个
+  对象处结束，解压长度必须等于声明值）；包尾 SHA-1（bundle 末尾 20 字节
+  是 PACK 自身校验和，覆盖 PACK 数据区；**包尾之后多一个字节即判不完整**）。
+- 对象 ID 按 Git 规范 `sha1("<type> <真实长度>\0" + 内容)` **重新计算**，
+  压缩块的摘要从不当作对象 ID。同一对象在包中出现两次但类型/长度不同是
+  损坏。
+- 支持 commit、tree、blob 与 `OFS_DELTA`、`REF_DELTA`。REF_DELTA 的基对象
+  可以在它**之后**；基对象本身也可以是 delta；REF/OFS 可混合成多层链；
+  同一基对象被多份版本共享，解析某个目标**不会**改写或消耗基对象。缺失
+  基对象、delta 环、复制/插入越界、源/目标长度不符都单独诊断。
+
+### 提交父图
+
+- 从每个 ref 遍历**所有**可达提交。提交身份、**完整且有序的 parents**、
+  根 tree、作者/提交者原始头（头部块本身和逐头 base64 原值）、正文都保留；
+  多行头（续行以空格开头，如 `gpgsig`）按 Git 规则解释，未知头原样保留。
+- 父子关系**只来自 `parent` 头**，绝不按提交时间推断：演示里子提交时间
+  早于父提交，输出顺序仍是父先于子。
+- 输出顺序是拓扑序，就绪节点按**对象 ID 字节序**；作者时间不参与排序。
+- 一个提交从多个 ref 到达只列一次，`refs` 字段列出全部到达来源。提交和
+  tree 引用必须存在且类型吻合；父图有环、重复 parent、ref 指向非 commit
+  都拒绝。
+
+### 无损路径与文件版本
+
+- tree 内按**原始名称字节**识别路径。报告中的 `path` 是
+  `{"b64": "...", "components_b64": [...], "display": "..."}`：
+  `b64` 为每段原始字节各自 base64 后以 `/` 连接（base64 字母表不含 `/`，
+  因此无歧义，也不会被换行拆开）；`display` 只是方便阅读的安全转义名
+  （非 UTF-8 名称显示为 `b64:<...>`），**不可**用于回填。
+- 重复名称、空名称、含 `/` 的名称、`.`/`..` 分量、非法模式、tree 与对象
+  类型不符、tree 引用缺失都拒绝。普通文件 `100644`、可执行 `100755`、
+  符号链接 `120000`、gitlink `160000` 分别标记；**gitlink 只是外部提交
+  ID**，包内不必存在该对象，也绝不沿它进入子仓库；符号链接的 blob 是链接
+  文本，绝不在宿主机上跟随读取。根 tree 本身永远不是一条业务文件。
+- 同一路径引用同一个 blob 仍是两份文件事实；不同提交共享 tree/blob 时，
+  缓存按对象 ID 建立，路径前缀由调用方逐层传入，不会串到别的挂载位置。
+
+### 文件变化
+
+- 按**完整路径**对照，不做重命名猜测。新增、删除、内容变化、仅模式变化
+  分别可识别；两者同时变化时 `content_changed` 与 `mode_changed` 都为真。
+- 根提交相对空目录列出全部新增。合并提交**各自**对照每个 parent，保留
+  `parent_index` 与父 ID，绝不只选第一父，也绝不先合成一个虚构父目录。
+- 一边是文件、另一边是同名目录时，表现为旧叶子删除 + 新目录下叶子新增。
+
+### 导出
+
+- 只允许导出一个已存在 commit 中某条**精确路径**上的普通/可执行 blob。
+  链接与 gitlink 可查询、不可导出；根 tree 不可导出。
+- 不把仓库目录树铺到磁盘，不执行文件。目标必须不存在；内容先写入同目录
+  临时文件、fsync 后原子改名，失败不留下半个正式文件，既有目标字节不变。
+- 导出旁写 `<目标名>.export_manifest.json`：bundle 路径/SHA-1/大小/包尾、
+  commit、tree 链（根 tree 到叶子）、blob ID/长度/sha256、原始路径
+  （b64 与分量）、模式、类型。用新进程读回导出文件应与该提交的 Git 原件
+  逐字节相同。
+- 提交不在任何 ref 可达范围、路径不存在、目标是链接/gitlink/目录、目标
+  已存在、源包损坏均非零失败。
+
+### 资源上限与暂存
+
+- 每个操作在 `--temp-dir` 下建立**本次独有**的暂存目录，对象与 delta 负载
+  落盘（`objects/<前两位>/<id>`、`deltas/`），不把整个 bundle 或全部解压
+  对象常驻内存；结束后只删除自己创建的目录，旁边的文件原样保留。
+- 明确上限（均可通过 CLI/Python 覆盖）：
+  `--max-object-bytes`（单对象解压，默认 64 MiB）、
+  `--max-total-bytes`（累计解压/暂存，默认 1 GiB）、
+  `--max-objects`（对象数，默认 1,000,000）、
+  `--max-delta-depth`（delta 链深度，默认 64）。达到上限是硬拒绝，绝不
+  截短成一个看似有效的对象。
+- 输出目录必须是**不存在的新目录**；不存在“报告已写但某个文件已取出”的
+  混合状态：`git-ingest` 报告只在整包校验完成后由临时目录整体改名生成，
+  `git-export` 的完成状态只在目标文件与清单都落盘后返回。损坏包不会留下
+  成功报告或半个导出文件。
+
+### 报告字段与退出码
+
+`handoff_report.json` 顶层字段：
+
+| 字段 | 内容 |
+|---|---|
+| `format` | `copybook-git-handoff/v1` |
+| `bundle` | 路径、整包 SHA-1、大小、头长度、PACK 字节数、对象数、包尾、refs |
+| `limits` | 本次生效的四项上限 |
+| `counts` | ref/可达提交/列出提交/对象/delta 对象数、最大 delta 深度 |
+| `resources` | PACK 字节数、暂存字节数、暂存对象数 |
+| `order` | 固定顺序说明（父先于子，就绪节点按对象 ID 字节序） |
+| `commit_order` | 拓扑序提交 ID 数组 |
+| `refs` | 每个有 ref 到达的提交及其全部来源 ref |
+| `commits` | 提交身份、有序 parents、根 tree、原始作者/提交者、全部原始头、正文 |
+| `file_listings` | 每个提交的完整文件清单（路径/模式/类型/对象 ID/长度/sha256） |
+| `diffs` | 每个提交对**每个** parent 的变化行（父序号、父 ID、变化项） |
+| `extraction` | `performed: false`——事实接入不代表任何文件已取出；只有 `git-export` 的清单才声明导出 |
+
+`commits.jsonl` 每行一个提交；`commits/<id>.files.jsonl` 每行一个文件事实；
+`commits/<id>.diff-p<序号>-<父ID>.jsonl`（根提交为 `.diff-root.jsonl`）每行
+一个变化。
+
+| 退出码 | 含义 |
+|---|---|
+| 0 | bundle 校验通过、事实已交付 / 导出完成 |
+| 2 | 包格式、对象、图、路径、上限、目标已存在或输出目录已存在；不产生正式结果 |
+
+### 交接演示与夹具
+
+```bash
+python3 examples/git/build_handoff.py      # 用 git 生成双支线仓库与自包含 bundle
+python3 examples/git/run_scenarios.py      # 接入、对照手工父图/差异、导出并 decode
+python3 examples/git/run_edge_cases.py     # 手工 PACK：REF/OFS 链、共享基对象、各种路径
+python3 examples/git/run_corruptions.py    # 复制件损坏（重算外层校验）逐项拒绝
+python3 examples/git/run_performance.py    # 大包峰值 RSS、暂存量与上限清理
+```
+
+`examples/git/README.md` 记录演示仓库的构造步骤、手工期望值位置与各脚本覆盖
+的边界。
+
+- 真实演示仓库含现有样例数据与布局；`data` 支线改数据、`layout` 支线改布局，
+  数据与布局子提交的时间都**早于**父提交；随后两次合并并打出 `--all`
+  自包含 bundle。`expected_handoff.py` 中的父图、每支线文件版本、每次合并
+  对每个父的预期差异与解码字段**全部手工写出**，运行器逐项比对；两份数据
+  从不同提交导出，其中一份交给 `decode` 核对字段与源位置。核对对象只来自
+  bundle；生成仓库的工作树仅在事后作为独立旁证。
+- `run_edge_cases.py` 用手写 PACK 让 REF_DELTA 先于基对象、REF/OFS 混合
+  链共享同一基对象，覆盖两 refs 共享祖先、merge 每父差异、模式变化、
+  删除、文件变目录、含换行/非 UTF-8 名称、链接与 gitlink。
+- `run_corruptions.py` 在复制件中破坏 delta 复制范围、缺基对象、声明长度、
+  tree 引用与类型、包尾与额外尾字节，并适当重算外层校验，让内部检查真正
+  被执行。
+- `run_performance.py` 用约 96 MiB 解压量、2000 个无关 blob 的包记录实际
+  峰值 RSS 与暂存量（远低于解压总量），并验证上限触发后不留下报告或暂存。
+
 ## 测试
 
 ```bash
@@ -656,4 +845,10 @@ CLI 两档退出码；以及未结项核销的严格金额/日期/时间戳解�
 活动边/解除原因/双方余额核对、收款撤销与账单撤销的释放再分配、历史
 核销边不覆盖、cutoff 边界与五档账龄、两条守恒关系、坏组隔离无部分
 余额、路由级致命错误零交付、结果目录防覆盖、仅凭结果目录的对象追查
-与 settle/trace CLI 三档退出码。
+与 settle/trace CLI 三档退出码；以及离线 Git 交接的 bundle 头/包尾/多余
+尾字节拒绝、PACK 签名/版本/对象数/流边界/声明大小、REF 先于基对象的 delta、
+REF/OFS 混合多层链与共享基对象、对象 ID 重算、缺失基对象与坏复制范围、
+tree 重复/空/斜杠/点分量与类型不符、父图环与重复 parent、父先于子的拓扑序
+与多 ref 来源、合并对每父差异、模式/内容/删除/文件变目录、换行与非 UTF-8
+路径、链接与 gitlink 不导出、导出原子性与既有目标保护、上限硬拒绝与暂存
+清理、CLI 两档退出码。

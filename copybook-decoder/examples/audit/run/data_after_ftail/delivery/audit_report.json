@@ -15,6 +15,6 @@
   "file_diagnostic_count": 1,
   "accepted_details_file": "accepted_details.jsonl",
   "accepted_detail_count": 0,
-  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 19676},
+  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 20896},
   "output_dir": "/workspace/copybook-decoder/examples/audit/run/data_after_ftail/delivery"
 }
