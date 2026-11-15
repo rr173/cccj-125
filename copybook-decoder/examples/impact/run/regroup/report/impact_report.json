@@ -1,0 +1,158 @@
+{
+  "report": "layout-change-impact",
+  "format_version": 1,
+  "sources": {
+    "old_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/regroup/old/manifest.json",
+    "new_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/regroup/new/manifest.json"
+  },
+  "conclusion": "incompatible",
+  "problem_count": 0,
+  "problems": [],
+  "senders": [
+    {
+      "sender": "BANKD",
+      "status": "incompatible",
+      "affected_ranges": [
+        {
+          "copybook": "GRID",
+          "from": "2024-09-01",
+          "to": null,
+          "old_version": "1",
+          "new_version": "2",
+          "conclusion": "incompatible",
+          "comparison": 0
+        }
+      ],
+      "keys": [
+        {
+          "copybook": "GRID",
+          "affected_ranges": [
+            {
+              "from": "2024-09-01",
+              "to": null,
+              "old_version": "1",
+              "new_version": "2",
+              "conclusion": "incompatible",
+              "comparison": 0
+            }
+          ],
+          "unaffected_ranges": [
+            {
+              "from": "2024-01-01",
+              "to": "2024-08-31",
+              "version": "1"
+            }
+          ],
+          "unresolvable_ranges": [],
+          "comparisons": [
+            {
+              "old_layout": "GRID v1 (old manifest)",
+              "new_layout": "GRID v2 (new manifest)",
+              "conclusion": "incompatible",
+              "record_length": {
+                "old": 6,
+                "new": 6,
+                "changed": false,
+                "explanation": [
+                  {
+                    "path": "GRID-RECORD/GRP-OLD/STATUS",
+                    "effect": "removed",
+                    "bytes": -2
+                  },
+                  {
+                    "path": "GRID-RECORD/GRP-NEW/STATUS",
+                    "effect": "added",
+                    "bytes": 2
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "path": "GRID-RECORD/GRID-ID",
+                  "category": "unchanged",
+                  "old": {
+                    "path": "GRID-RECORD/GRID-ID",
+                    "bytes": [
+                      0,
+                      4
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "X(4)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "new": {
+                    "path": "GRID-RECORD/GRID-ID",
+                    "bytes": [
+                      0,
+                      4
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "X(4)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  }
+                },
+                {
+                  "path": "GRID-RECORD/GRP-OLD/STATUS",
+                  "category": "removed",
+                  "old": {
+                    "path": "GRID-RECORD/GRP-OLD/STATUS",
+                    "bytes": [
+                      4,
+                      6
+                    ],
+                    "byte_length_per_occurs": 2,
+                    "occurs": 1,
+                    "pic": "X(2)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  }
+                },
+                {
+                  "path": "GRID-RECORD/GRP-NEW/STATUS",
+                  "category": "added",
+                  "new": {
+                    "path": "GRID-RECORD/GRP-NEW/STATUS",
+                    "bytes": [
+                      4,
+                      6
+                    ],
+                    "byte_length_per_occurs": 2,
+                    "occurs": 1,
+                    "pic": "X(2)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  }
+                }
+              ],
+              "view_clusters": [],
+              "notes": [
+                "name STATUS exists on both sides but at different group paths (GRID-RECORD/GRP-OLD/STATUS vs GRID-RECORD/GRP-NEW/STATUS); treated as removed + added, not as the same field"
+              ],
+              "problems": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

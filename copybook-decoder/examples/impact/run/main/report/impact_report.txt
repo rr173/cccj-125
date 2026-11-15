@@ -1,0 +1,67 @@
+布局变更影响报告 / Layout Change Impact Report
+==============================================
+旧清单 (old manifest): /workspace/copybook-decoder/examples/impact/run/scenarios/main/old/manifest.json
+新清单 (new manifest): /workspace/copybook-decoder/examples/impact/run/scenarios/main/new/manifest.json
+
+总体结论 (overall conclusion): incompatible
+  新旧布局对相同字节给出不同解释; 受影响的日期区间需要发布评审。
+
+发送方 BANKA — 状态: incompatible
+  copybook ACCT:
+    受影响日期区间 (布局版本发生变化):
+      [2024-09-01 .. 开放]  v1 -> v2  结论: incompatible
+    不受影响 (两侧选择同一版本且布局一致):
+      [2024-01-01 .. 2024-08-31]  v1
+    适用区间: [2024-09-01 .. 开放]
+    字段对照: ACCT v1 (old manifest)  ->  ACCT v2 (new manifest)
+    结论: incompatible
+    记录长度: 50 -> 51 字节 (+1)，构成:
+      -2  ACCT-RECORD/OLD-STATUS  (removed)
+      +3  ACCT-RECORD/CURRENCY  (added)
+      [原位置同义 unchanged]  ACCT-RECORD/ACCT-ID
+          [0, 10) X(10) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+      [原位置同义 unchanged]  ACCT-RECORD/ACCT-NAME
+          [10, 30) X(20) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+      [解释变化 reinterpreted]  ACCT-RECORD/BALANCE
+          旧: [30, 35) S9(7)V99 COMP-3 signed scale=2 occurs=1
+          新: [30, 35) S9(6)V999 COMP-3 signed scale=3 occurs=1
+          pic: S9(7)V99 -> S9(6)V999
+          scale: 2 -> 3
+      [位置移动 moved]  ACCT-RECORD/LAST-TXN-DATE
+          旧: [35, 43) 9(8) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+          新: [38, 46) 9(8) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+          offset: 35 -> 38 (shift +3)
+          说明: field definition unchanged; position shifted by length changes elsewhere in the record
+      [位置移动 moved]  ACCT-RECORD/LEGACY-CODE
+          旧: [43, 47) X(4) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+          新: [46, 50) X(4) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+          offset: 43 -> 46 (shift +3)
+          说明: field definition unchanged; position shifted by length changes elsewhere in the record
+      [位置移动 moved]  ACCT-RECORD/LEGACY-CODE-NUM
+          旧: [43, 47) 9(4) DISPLAY unsigned scale=0 occurs=1 codec=cp037 REDEFINES ACCT-RECORD/LEGACY-CODE
+          新: [46, 50) 9(4) DISPLAY unsigned scale=0 occurs=1 codec=cp037 REDEFINES ACCT-RECORD/LEGACY-CODE
+          offset: 43 -> 46 (shift +3)
+          说明: field definition unchanged; position shifted by length changes elsewhere in the record
+      [移除 removed]  ACCT-RECORD/OLD-STATUS
+          旧: [47, 49) X(2) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+      [新增 added]  ACCT-RECORD/BALANCE-TEXT
+          新: [30, 35) X(5) DISPLAY unsigned scale=0 occurs=1 codec=cp037 REDEFINES ACCT-RECORD/BALANCE
+          说明: new REDEFINES view over bytes [30, 35) of ACCT-RECORD/BALANCE; an alternative reading of existing bytes, no additional storage
+      [新增 added]  ACCT-RECORD/CURRENCY
+          新: [35, 38) X(3) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+    REDEFINES 视图簇 (同一字节的互斥解释, 不额外占用存储):
+      字节 [30, 35) ACCT-RECORD/BALANCE
+          旧视图: (无)
+          新视图: ACCT-RECORD/BALANCE-TEXT
+    备注: bytes [30, 35) of ACCT-RECORD/BALANCE gain an alternative reading via new REDEFINES view ACCT-RECORD/BALANCE-TEXT; the view overlays the same bytes and occupies no extra storage
+    备注: record length changes 50 -> 51 bytes (+1)
+
+发送方 BANKB — 状态: unaffected
+  copybook ACCT:
+    不受影响 (两侧选择同一版本且布局一致):
+      [2024-01-01 .. 开放]  v1
+
+问题列表 (0):
+  (无)
+
+说明: 字节区间为半开区间 [start, end); 生效日期为闭区间, '开放' 表示无 effective_to 上限。REDEFINES 视图是同一字节的互斥解释, 不同时占用存储。

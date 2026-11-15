@@ -1,0 +1,110 @@
+{
+  "report": "layout-change-impact",
+  "format_version": 1,
+  "sources": {
+    "old_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/duplicate_path/old/manifest.json",
+    "new_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/duplicate_path/new/manifest.json"
+  },
+  "conclusion": "unverifiable",
+  "problem_count": 2,
+  "problems": [
+    {
+      "kind": "duplicate_field_path",
+      "source": "new_manifest",
+      "sender": "BANKA",
+      "copybook": "ACCT",
+      "range": null,
+      "message": "field path ACCT-RECORD/GRP-A is declared 2 times in new layout ACCT v2 (level 5 at byte 10 (group), level 5 at byte 12 (group)); path-based matching is ambiguous",
+      "path": "ACCT-RECORD/GRP-A",
+      "layout": "ACCT",
+      "version": "2"
+    },
+    {
+      "kind": "duplicate_field_path",
+      "source": "new_manifest",
+      "sender": "BANKA",
+      "copybook": "ACCT",
+      "range": null,
+      "message": "field path ACCT-RECORD/GRP-A/CODE is declared 2 times in new layout ACCT v2 (level 10 at byte 10 (elementary), level 10 at byte 12 (elementary)); path-based matching is ambiguous",
+      "path": "ACCT-RECORD/GRP-A/CODE",
+      "layout": "ACCT",
+      "version": "2"
+    }
+  ],
+  "senders": [
+    {
+      "sender": "BANKA",
+      "status": "unverifiable",
+      "affected_ranges": [
+        {
+          "copybook": "ACCT",
+          "from": "2024-09-01",
+          "to": null,
+          "old_version": "1",
+          "new_version": "2",
+          "conclusion": "unverifiable",
+          "comparison": 0
+        }
+      ],
+      "keys": [
+        {
+          "copybook": "ACCT",
+          "affected_ranges": [
+            {
+              "from": "2024-09-01",
+              "to": null,
+              "old_version": "1",
+              "new_version": "2",
+              "conclusion": "unverifiable",
+              "comparison": 0
+            }
+          ],
+          "unaffected_ranges": [
+            {
+              "from": "2024-01-01",
+              "to": "2024-08-31",
+              "version": "1"
+            }
+          ],
+          "unresolvable_ranges": [],
+          "comparisons": [
+            {
+              "old_layout": "ACCT v1 (old manifest)",
+              "new_layout": "ACCT v2 (new manifest)",
+              "conclusion": "unverifiable",
+              "record_length": {
+                "old": 50,
+                "new": 18,
+                "changed": true,
+                "explanation": []
+              },
+              "fields": [],
+              "view_clusters": [],
+              "notes": [
+                "duplicate field paths make the layout untrustworthy; field comparison skipped"
+              ],
+              "problems": [
+                {
+                  "kind": "duplicate_field_path",
+                  "side": "new",
+                  "layout": "ACCT",
+                  "version": "2",
+                  "path": "ACCT-RECORD/GRP-A",
+                  "message": "field path ACCT-RECORD/GRP-A is declared 2 times in new layout ACCT v2 (level 5 at byte 10 (group), level 5 at byte 12 (group)); path-based matching is ambiguous"
+                },
+                {
+                  "kind": "duplicate_field_path",
+                  "side": "new",
+                  "layout": "ACCT",
+                  "version": "2",
+                  "path": "ACCT-RECORD/GRP-A/CODE",
+                  "message": "field path ACCT-RECORD/GRP-A/CODE is declared 2 times in new layout ACCT v2 (level 10 at byte 10 (elementary), level 10 at byte 12 (elementary)); path-based matching is ambiguous"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

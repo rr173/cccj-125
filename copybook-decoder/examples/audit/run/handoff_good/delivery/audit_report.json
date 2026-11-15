@@ -19,6 +19,6 @@
   "file_diagnostic_count": 0,
   "accepted_details_file": "accepted_details.jsonl",
   "accepted_detail_count": 2,
-  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 15524},
+  "staging": {"sqlite": "audit.sqlite3", "staging_bytes": 90112, "peak_rss_kb": 15796},
   "output_dir": "/workspace/copybook-decoder/examples/audit/run/handoff_good/delivery"
 }

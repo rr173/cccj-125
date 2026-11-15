@@ -1,0 +1,21 @@
+{
+  "layouts": [
+    {
+      "sender": "BANKC",
+      "copybook": "CARD",
+      "version": "1",
+      "effective_from": "2024-01-01",
+      "file": "copybooks/CARD-1.cpy",
+      "codec": "cp037",
+      "effective_to": "2024-08-31"
+    },
+    {
+      "sender": "BANKC",
+      "copybook": "CARD",
+      "version": "2",
+      "effective_from": "2024-09-01",
+      "file": "copybooks/CARD-2.cpy",
+      "codec": "cp037"
+    }
+  ]
+}

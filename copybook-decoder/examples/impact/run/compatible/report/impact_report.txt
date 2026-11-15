@@ -1,0 +1,38 @@
+布局变更影响报告 / Layout Change Impact Report
+==============================================
+旧清单 (old manifest): /workspace/copybook-decoder/examples/impact/run/scenarios/compatible/old/manifest.json
+新清单 (new manifest): /workspace/copybook-decoder/examples/impact/run/scenarios/compatible/new/manifest.json
+
+总体结论 (overall conclusion): compatible
+  所有受影响日期区间内, 既有字段的字节位置与解释保持一致。
+
+发送方 BANKC — 状态: compatible
+  copybook CARD:
+    受影响日期区间 (布局版本发生变化):
+      [2024-09-01 .. 开放]  v1 -> v2  结论: compatible
+    不受影响 (两侧选择同一版本且布局一致):
+      [2024-01-01 .. 2024-08-31]  v1
+    适用区间: [2024-09-01 .. 开放]
+    字段对照: CARD v1 (old manifest)  ->  CARD v2 (new manifest)
+    结论: compatible
+    记录长度: 13 字节 (不变)
+      [原位置同义 unchanged]  CARD-RECORD/CARD-ID
+          [0, 6) X(6) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+      [原位置同义 unchanged]  CARD-RECORD/AMOUNT
+          [6, 10) S9(5)V99 COMP-3 signed scale=2 occurs=1
+      [新增 added]  CARD-RECORD/AMT-TEXT
+          新: [6, 10) X(4) DISPLAY unsigned scale=0 occurs=1 codec=cp037 REDEFINES CARD-RECORD/AMOUNT
+          说明: new REDEFINES view over bytes [6, 10) of CARD-RECORD/AMOUNT; an alternative reading of existing bytes, no additional storage
+      [新增 added]  CARD-RECORD/REGION
+          新: [10, 13) X(3) DISPLAY unsigned scale=0 occurs=1 codec=cp037
+          说明: occupies bytes [10, 13) that were FILLER in the old layout
+    REDEFINES 视图簇 (同一字节的互斥解释, 不额外占用存储):
+      字节 [6, 10) CARD-RECORD/AMOUNT
+          旧视图: (无)
+          新视图: CARD-RECORD/AMT-TEXT
+    备注: bytes [6, 10) of CARD-RECORD/AMOUNT gain an alternative reading via new REDEFINES view CARD-RECORD/AMT-TEXT; the view overlays the same bytes and occupies no extra storage
+
+问题列表 (0):
+  (无)
+
+说明: 字节区间为半开区间 [start, end); 生效日期为闭区间, '开放' 表示无 effective_to 上限。REDEFINES 视图是同一字节的互斥解释, 不同时占用存储。

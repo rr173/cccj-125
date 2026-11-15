@@ -1,0 +1,12 @@
+{
+  "layouts": [
+    {
+      "sender": "BANKD",
+      "copybook": "GRID",
+      "version": "1",
+      "effective_from": "2024-01-01",
+      "file": "copybooks/GRID-1.cpy",
+      "codec": "cp037"
+    }
+  ]
+}

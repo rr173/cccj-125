@@ -1,0 +1,208 @@
+{
+  "report": "layout-change-impact",
+  "format_version": 1,
+  "sources": {
+    "old_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/compatible/old/manifest.json",
+    "new_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/compatible/new/manifest.json"
+  },
+  "conclusion": "compatible",
+  "problem_count": 0,
+  "problems": [],
+  "senders": [
+    {
+      "sender": "BANKC",
+      "status": "compatible",
+      "affected_ranges": [
+        {
+          "copybook": "CARD",
+          "from": "2024-09-01",
+          "to": null,
+          "old_version": "1",
+          "new_version": "2",
+          "conclusion": "compatible",
+          "comparison": 0
+        }
+      ],
+      "keys": [
+        {
+          "copybook": "CARD",
+          "affected_ranges": [
+            {
+              "from": "2024-09-01",
+              "to": null,
+              "old_version": "1",
+              "new_version": "2",
+              "conclusion": "compatible",
+              "comparison": 0
+            }
+          ],
+          "unaffected_ranges": [
+            {
+              "from": "2024-01-01",
+              "to": "2024-08-31",
+              "version": "1"
+            }
+          ],
+          "unresolvable_ranges": [],
+          "comparisons": [
+            {
+              "old_layout": "CARD v1 (old manifest)",
+              "new_layout": "CARD v2 (new manifest)",
+              "conclusion": "compatible",
+              "record_length": {
+                "old": 13,
+                "new": 13,
+                "changed": false,
+                "explanation": [
+                  {
+                    "path": "CARD-RECORD/REGION",
+                    "effect": "added",
+                    "bytes": 3
+                  },
+                  {
+                    "path": "(FILLER)",
+                    "effect": "filler resized",
+                    "bytes": -3
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "path": "CARD-RECORD/CARD-ID",
+                  "category": "unchanged",
+                  "old": {
+                    "path": "CARD-RECORD/CARD-ID",
+                    "bytes": [
+                      0,
+                      6
+                    ],
+                    "byte_length_per_occurs": 6,
+                    "occurs": 1,
+                    "pic": "X(6)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "new": {
+                    "path": "CARD-RECORD/CARD-ID",
+                    "bytes": [
+                      0,
+                      6
+                    ],
+                    "byte_length_per_occurs": 6,
+                    "occurs": 1,
+                    "pic": "X(6)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  }
+                },
+                {
+                  "path": "CARD-RECORD/AMOUNT",
+                  "category": "unchanged",
+                  "old": {
+                    "path": "CARD-RECORD/AMOUNT",
+                    "bytes": [
+                      6,
+                      10
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "S9(5)V99",
+                    "pic_category": "9",
+                    "signed": true,
+                    "scale": 2,
+                    "usage": "COMP-3",
+                    "codec": null,
+                    "redefines": null
+                  },
+                  "new": {
+                    "path": "CARD-RECORD/AMOUNT",
+                    "bytes": [
+                      6,
+                      10
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "S9(5)V99",
+                    "pic_category": "9",
+                    "signed": true,
+                    "scale": 2,
+                    "usage": "COMP-3",
+                    "codec": null,
+                    "redefines": null
+                  }
+                },
+                {
+                  "path": "CARD-RECORD/AMT-TEXT",
+                  "category": "added",
+                  "new": {
+                    "path": "CARD-RECORD/AMT-TEXT",
+                    "bytes": [
+                      6,
+                      10
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "X(4)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": "CARD-RECORD/AMOUNT"
+                  },
+                  "note": "new REDEFINES view over bytes [6, 10) of CARD-RECORD/AMOUNT; an alternative reading of existing bytes, no additional storage"
+                },
+                {
+                  "path": "CARD-RECORD/REGION",
+                  "category": "added",
+                  "new": {
+                    "path": "CARD-RECORD/REGION",
+                    "bytes": [
+                      10,
+                      13
+                    ],
+                    "byte_length_per_occurs": 3,
+                    "occurs": 1,
+                    "pic": "X(3)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "note": "occupies bytes [10, 13) that were FILLER in the old layout"
+                }
+              ],
+              "view_clusters": [
+                {
+                  "target": "CARD-RECORD/AMOUNT",
+                  "bytes": [
+                    6,
+                    10
+                  ],
+                  "old_views": [],
+                  "new_views": [
+                    "CARD-RECORD/AMT-TEXT"
+                  ]
+                }
+              ],
+              "notes": [
+                "bytes [6, 10) of CARD-RECORD/AMOUNT gain an alternative reading via new REDEFINES view CARD-RECORD/AMT-TEXT; the view overlays the same bytes and occupies no extra storage"
+              ],
+              "problems": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

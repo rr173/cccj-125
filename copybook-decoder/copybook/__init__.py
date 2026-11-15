@@ -1,6 +1,6 @@
 """Copybook decoder for legacy fixed-width EBCDIC data exchange."""
 
-from . import audit
+from . import audit, impact
 from .decoder import Decoder, RedefinesPolicy
 from .errors import (CopybookError, CopybookSyntaxError, FieldDecodeError,
                      ManifestError, RecordLengthError)
@@ -11,12 +11,12 @@ from .pipeline import (DecodeResult, DecodedRecord, QuarantinedLine,
                        decode_file)
 from .registry import LayoutRegistry
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "CopybookError", "CopybookSyntaxError", "DecodeResult", "DecodedRecord",
     "Decoder", "Field", "FieldDecodeError", "Layout", "LayoutRef",
     "LayoutRegistry", "Manifest", "ManifestError", "Pic", "QuarantinedLine",
     "RecordLengthError", "RedefinesPolicy", "audit", "decode_file",
-    "parse_copybook",
+    "impact", "parse_copybook",
 ]

@@ -1,0 +1,21 @@
+{
+  "layouts": [
+    {
+      "sender": "BANKA",
+      "copybook": "ACCT",
+      "version": "1",
+      "effective_from": "2024-01-01",
+      "file": "copybooks/ACCT-1.cpy",
+      "codec": "cp037",
+      "effective_to": "2024-08-31"
+    },
+    {
+      "sender": "BANKA",
+      "copybook": "ACCT",
+      "version": "2",
+      "effective_from": "2024-10-01",
+      "file": "copybooks/ACCT-2.cpy",
+      "codec": "cp037"
+    }
+  ]
+}

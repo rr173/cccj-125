@@ -1,0 +1,47 @@
+{
+  "report": "layout-change-impact",
+  "format_version": 1,
+  "sources": {
+    "old_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/version_reused/old/manifest.json",
+    "new_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/version_reused/new/manifest.json"
+  },
+  "conclusion": "unverifiable",
+  "problem_count": 1,
+  "problems": [
+    {
+      "kind": "version_reused",
+      "source": null,
+      "sender": "BANKA",
+      "copybook": "ACCT",
+      "range": {
+        "from": "2024-01-01",
+        "to": null
+      },
+      "message": "sender=BANKA ACCT v1 keeps the same version number on [2024-01-01 .. 开放] but the two manifests resolve it to different layouts; a version must identify exactly one layout",
+      "version": "1"
+    }
+  ],
+  "senders": [
+    {
+      "sender": "BANKA",
+      "status": "unverifiable",
+      "affected_ranges": [],
+      "keys": [
+        {
+          "copybook": "ACCT",
+          "affected_ranges": [],
+          "unaffected_ranges": [],
+          "unresolvable_ranges": [
+            {
+              "from": "2024-01-01",
+              "to": null,
+              "reason": "version_reused",
+              "version": "1"
+            }
+          ],
+          "comparisons": []
+        }
+      ]
+    }
+  ]
+}

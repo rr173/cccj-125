@@ -1,0 +1,58 @@
+{
+  "report": "layout-change-impact",
+  "format_version": 1,
+  "sources": {
+    "old_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/missing_copybook/old/manifest.json",
+    "new_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/missing_copybook/new/manifest.json"
+  },
+  "conclusion": "unverifiable",
+  "problem_count": 1,
+  "problems": [
+    {
+      "kind": "copybook_not_found",
+      "source": "new_manifest",
+      "sender": "BANKA",
+      "copybook": "ACCT",
+      "range": {
+        "from": "2024-09-01",
+        "to": null
+      },
+      "message": "copybook file /workspace/copybook-decoder/examples/impact/run/scenarios/missing_copybook/new/copybooks/ACCT-9.cpy referenced by sender=BANKA ACCT v9 does not exist",
+      "version": "9",
+      "file": "/workspace/copybook-decoder/examples/impact/run/scenarios/missing_copybook/new/copybooks/ACCT-9.cpy"
+    }
+  ],
+  "senders": [
+    {
+      "sender": "BANKA",
+      "status": "unverifiable",
+      "affected_ranges": [],
+      "keys": [
+        {
+          "copybook": "ACCT",
+          "affected_ranges": [],
+          "unaffected_ranges": [
+            {
+              "from": "2024-01-01",
+              "to": "2024-08-31",
+              "version": "1"
+            }
+          ],
+          "unresolvable_ranges": [
+            {
+              "from": "2024-09-01",
+              "to": null,
+              "reason": "copybook_unavailable",
+              "old_version": "1",
+              "new_version": "9",
+              "missing": [
+                "ACCT v9 (new manifest)"
+              ]
+            }
+          ],
+          "comparisons": []
+        }
+      ]
+    }
+  ]
+}

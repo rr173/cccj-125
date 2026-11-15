@@ -1,0 +1,408 @@
+{
+  "report": "layout-change-impact",
+  "format_version": 1,
+  "sources": {
+    "old_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/main/old/manifest.json",
+    "new_manifest": "/workspace/copybook-decoder/examples/impact/run/scenarios/main/new/manifest.json"
+  },
+  "conclusion": "incompatible",
+  "problem_count": 0,
+  "problems": [],
+  "senders": [
+    {
+      "sender": "BANKA",
+      "status": "incompatible",
+      "affected_ranges": [
+        {
+          "copybook": "ACCT",
+          "from": "2024-09-01",
+          "to": null,
+          "old_version": "1",
+          "new_version": "2",
+          "conclusion": "incompatible",
+          "comparison": 0
+        }
+      ],
+      "keys": [
+        {
+          "copybook": "ACCT",
+          "affected_ranges": [
+            {
+              "from": "2024-09-01",
+              "to": null,
+              "old_version": "1",
+              "new_version": "2",
+              "conclusion": "incompatible",
+              "comparison": 0
+            }
+          ],
+          "unaffected_ranges": [
+            {
+              "from": "2024-01-01",
+              "to": "2024-08-31",
+              "version": "1"
+            }
+          ],
+          "unresolvable_ranges": [],
+          "comparisons": [
+            {
+              "old_layout": "ACCT v1 (old manifest)",
+              "new_layout": "ACCT v2 (new manifest)",
+              "conclusion": "incompatible",
+              "record_length": {
+                "old": 50,
+                "new": 51,
+                "changed": true,
+                "explanation": [
+                  {
+                    "path": "ACCT-RECORD/OLD-STATUS",
+                    "effect": "removed",
+                    "bytes": -2
+                  },
+                  {
+                    "path": "ACCT-RECORD/CURRENCY",
+                    "effect": "added",
+                    "bytes": 3
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "path": "ACCT-RECORD/ACCT-ID",
+                  "category": "unchanged",
+                  "old": {
+                    "path": "ACCT-RECORD/ACCT-ID",
+                    "bytes": [
+                      0,
+                      10
+                    ],
+                    "byte_length_per_occurs": 10,
+                    "occurs": 1,
+                    "pic": "X(10)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "new": {
+                    "path": "ACCT-RECORD/ACCT-ID",
+                    "bytes": [
+                      0,
+                      10
+                    ],
+                    "byte_length_per_occurs": 10,
+                    "occurs": 1,
+                    "pic": "X(10)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  }
+                },
+                {
+                  "path": "ACCT-RECORD/ACCT-NAME",
+                  "category": "unchanged",
+                  "old": {
+                    "path": "ACCT-RECORD/ACCT-NAME",
+                    "bytes": [
+                      10,
+                      30
+                    ],
+                    "byte_length_per_occurs": 20,
+                    "occurs": 1,
+                    "pic": "X(20)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "new": {
+                    "path": "ACCT-RECORD/ACCT-NAME",
+                    "bytes": [
+                      10,
+                      30
+                    ],
+                    "byte_length_per_occurs": 20,
+                    "occurs": 1,
+                    "pic": "X(20)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  }
+                },
+                {
+                  "path": "ACCT-RECORD/BALANCE",
+                  "category": "reinterpreted",
+                  "old": {
+                    "path": "ACCT-RECORD/BALANCE",
+                    "bytes": [
+                      30,
+                      35
+                    ],
+                    "byte_length_per_occurs": 5,
+                    "occurs": 1,
+                    "pic": "S9(7)V99",
+                    "pic_category": "9",
+                    "signed": true,
+                    "scale": 2,
+                    "usage": "COMP-3",
+                    "codec": null,
+                    "redefines": null
+                  },
+                  "new": {
+                    "path": "ACCT-RECORD/BALANCE",
+                    "bytes": [
+                      30,
+                      35
+                    ],
+                    "byte_length_per_occurs": 5,
+                    "occurs": 1,
+                    "pic": "S9(6)V999",
+                    "pic_category": "9",
+                    "signed": true,
+                    "scale": 3,
+                    "usage": "COMP-3",
+                    "codec": null,
+                    "redefines": null
+                  },
+                  "changes": [
+                    "pic: S9(7)V99 -> S9(6)V999",
+                    "scale: 2 -> 3"
+                  ]
+                },
+                {
+                  "path": "ACCT-RECORD/LAST-TXN-DATE",
+                  "category": "moved",
+                  "old": {
+                    "path": "ACCT-RECORD/LAST-TXN-DATE",
+                    "bytes": [
+                      35,
+                      43
+                    ],
+                    "byte_length_per_occurs": 8,
+                    "occurs": 1,
+                    "pic": "9(8)",
+                    "pic_category": "9",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "new": {
+                    "path": "ACCT-RECORD/LAST-TXN-DATE",
+                    "bytes": [
+                      38,
+                      46
+                    ],
+                    "byte_length_per_occurs": 8,
+                    "occurs": 1,
+                    "pic": "9(8)",
+                    "pic_category": "9",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "changes": [
+                    "offset: 35 -> 38 (shift +3)"
+                  ],
+                  "note": "field definition unchanged; position shifted by length changes elsewhere in the record"
+                },
+                {
+                  "path": "ACCT-RECORD/LEGACY-CODE",
+                  "category": "moved",
+                  "old": {
+                    "path": "ACCT-RECORD/LEGACY-CODE",
+                    "bytes": [
+                      43,
+                      47
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "X(4)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "new": {
+                    "path": "ACCT-RECORD/LEGACY-CODE",
+                    "bytes": [
+                      46,
+                      50
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "X(4)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  },
+                  "changes": [
+                    "offset: 43 -> 46 (shift +3)"
+                  ],
+                  "note": "field definition unchanged; position shifted by length changes elsewhere in the record"
+                },
+                {
+                  "path": "ACCT-RECORD/LEGACY-CODE-NUM",
+                  "category": "moved",
+                  "old": {
+                    "path": "ACCT-RECORD/LEGACY-CODE-NUM",
+                    "bytes": [
+                      43,
+                      47
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "9(4)",
+                    "pic_category": "9",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": "ACCT-RECORD/LEGACY-CODE"
+                  },
+                  "new": {
+                    "path": "ACCT-RECORD/LEGACY-CODE-NUM",
+                    "bytes": [
+                      46,
+                      50
+                    ],
+                    "byte_length_per_occurs": 4,
+                    "occurs": 1,
+                    "pic": "9(4)",
+                    "pic_category": "9",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": "ACCT-RECORD/LEGACY-CODE"
+                  },
+                  "changes": [
+                    "offset: 43 -> 46 (shift +3)"
+                  ],
+                  "note": "field definition unchanged; position shifted by length changes elsewhere in the record"
+                },
+                {
+                  "path": "ACCT-RECORD/OLD-STATUS",
+                  "category": "removed",
+                  "old": {
+                    "path": "ACCT-RECORD/OLD-STATUS",
+                    "bytes": [
+                      47,
+                      49
+                    ],
+                    "byte_length_per_occurs": 2,
+                    "occurs": 1,
+                    "pic": "X(2)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  }
+                },
+                {
+                  "path": "ACCT-RECORD/BALANCE-TEXT",
+                  "category": "added",
+                  "new": {
+                    "path": "ACCT-RECORD/BALANCE-TEXT",
+                    "bytes": [
+                      30,
+                      35
+                    ],
+                    "byte_length_per_occurs": 5,
+                    "occurs": 1,
+                    "pic": "X(5)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": "ACCT-RECORD/BALANCE"
+                  },
+                  "note": "new REDEFINES view over bytes [30, 35) of ACCT-RECORD/BALANCE; an alternative reading of existing bytes, no additional storage"
+                },
+                {
+                  "path": "ACCT-RECORD/CURRENCY",
+                  "category": "added",
+                  "new": {
+                    "path": "ACCT-RECORD/CURRENCY",
+                    "bytes": [
+                      35,
+                      38
+                    ],
+                    "byte_length_per_occurs": 3,
+                    "occurs": 1,
+                    "pic": "X(3)",
+                    "pic_category": "X",
+                    "signed": false,
+                    "scale": 0,
+                    "usage": "DISPLAY",
+                    "codec": "cp037",
+                    "redefines": null
+                  }
+                }
+              ],
+              "view_clusters": [
+                {
+                  "target": "ACCT-RECORD/BALANCE",
+                  "bytes": [
+                    30,
+                    35
+                  ],
+                  "old_views": [],
+                  "new_views": [
+                    "ACCT-RECORD/BALANCE-TEXT"
+                  ]
+                }
+              ],
+              "notes": [
+                "bytes [30, 35) of ACCT-RECORD/BALANCE gain an alternative reading via new REDEFINES view ACCT-RECORD/BALANCE-TEXT; the view overlays the same bytes and occupies no extra storage",
+                "record length changes 50 -> 51 bytes (+1)"
+              ],
+              "problems": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sender": "BANKB",
+      "status": "unaffected",
+      "affected_ranges": [],
+      "keys": [
+        {
+          "copybook": "ACCT",
+          "affected_ranges": [],
+          "unaffected_ranges": [
+            {
+              "from": "2024-01-01",
+              "to": null,
+              "version": "1"
+            }
+          ],
+          "unresolvable_ranges": [],
+          "comparisons": []
+        }
+      ]
+    }
+  ]
+}

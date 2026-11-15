@@ -17,8 +17,12 @@ copybook/            解码器包
     config.py        字段路径映射 + 有限类别表 + 精确千分单位数量解析
     evidence.py      正常记录与隔离索引的流式归并（物理行号严格覆盖）
     engine.py        磁盘暂存的状态机（SQLite），逐行校验、逐行交付
-  __main__.py        CLI（decode / audit 两个子命令）
-examples/            示例 Copybook、清单、数据生成器、交接场景与压测
+  impact/            布局变更影响报告：比较两份清单及其 Copybook
+    flatten.py       布局展开：完整分组路径、字节区间、结构问题检测
+    diff.py          字段级对照：同义/位移/解释变化/增删/视图簇
+    engine.py        容错清单加载、闭区间日期分段、报告装配与输出
+  __main__.py        CLI（decode / audit / impact 三个子命令）
+examples/            示例 Copybook、清单、数据生成器、交接场景、影响报告场景与压测
 tests/               unittest 测试套件与字节构造夹具
 ```
 
@@ -268,6 +272,91 @@ python3 examples/audit/run_performance.py     # 单超大批次 + 大量小批�
 三位小数、跨批 seq 重新从 1 开始、重复批号、孤立隔离行、FTAIL 后追加记录、
 行号缺口（无法校验）。
 
+## 布局变更影响报告（impact）
+
+在接收清单里加入一个新 Copybook 版本之前，维护者需要回答两个问题：**哪些
+已经接入的发送方和日期会选到它**，以及**同一字段在新旧布局下是否还表示
+相同的字节**。`copybook impact` 只读取两份清单（旧 = 生产在用，新 = 候选）
+及各自引用的 Copybook 给出答案——它不读取业务数据文件，不执行逐行解码，
+也不做批次交接校验。
+
+```bash
+python3 -m copybook impact \
+    --old-manifest examples/impact/run/scenarios/main/old/manifest.json \
+    --new-manifest examples/impact/run/scenarios/main/new/manifest.json \
+    --out-dir review/2024-09/
+```
+
+Python 接口：
+
+```python
+from copybook.impact import run_impact_report
+
+summary = run_impact_report("old/manifest.json", "new/manifest.json",
+                            "review/2024-09/")
+# summary 只回结论与计数；完整结果在 review/2024-09/ 下：
+#   impact_report.txt   可读报告（字段对照、日期区间、问题列表）
+#   impact_report.json  机器可读的字段差异与全部结论
+```
+
+输出目录必须是**不存在的新目录**；已存在时拒绝覆盖（退出码 2），绝不往
+里面写报告。
+
+### 字段对照口径
+
+- 字段用**完整分组路径**识别（如 `ACCT-RECORD/BALANCE`、
+  `REC/GRP-A/CODE`），绝不按裸字段名判等：相同名字出现在不同分组时是
+  不同字段，按移除 + 新增处理并在备注中说明。
+- 每个叶子字段报告绝对字节区间 `[start, end)`（半开）、PIC、符号、
+  小数位、usage、codec（仅 DISPLAY 字段参与比较，COMP-3 不经过文本
+  codec）和 OCCURS 次数。
+- 变更分类：**原位置同义**（字节与解释均不变）、**位置移动**（自身
+  PIC/缩放未变，仅因前方字节增减而位移，与自身解释变化分开说明）、
+  **同名但解释变化**（PIC 类别/长度、符号、小数位、usage、OCCURS、
+  codec、REDEFINES 目标任一变化）、**新增**、**移除**。
+- REDEFINES 视图是同一字节区间的**互斥解释**，不额外占用存储：新增视图
+  不视为字段增占字节，视图簇（目标 + 全部视图）在新旧两侧单独对照，
+  记录长度计算也不会把视图重复计入。
+- 总记录长度变化时，逐项列出构成（新增/移除/自身变长的字段及 FILLER
+  增减），并校验合计与长度差一致。
+- 新增字段只有落在旧布局 FILLER 字节内、或作为 REDEFINES 视图时才算
+  兼容；任何移除、位移、解释变化或记录长度变化都判 **incompatible**。
+
+### 日期区间口径
+
+- 生效区间按**闭区间**处理，`effective_to` 缺省为开放区间；报告列出每个
+  发送方**实际受影响**的日期区间（新旧清单解析出不同版本的区间）与不受
+  影响的区间。
+- 下列情况**不会**被挑一个版本继续生成看似完整的报告，而是记入问题列表
+  （指出发送方、日期范围、清单来源），并使总体结论为 `unverifiable`：
+  同一清单内生效区间**重叠**；新清单出现**空洞**（旧清单覆盖的日期失去
+  布局）；**缺少旧版本**（新清单覆盖的日期在旧清单中没有基线）；清单引用
+  的 **Copybook 不存在**或解析失败；同一版本号在两侧指向**不同布局**；
+  布局内**字段路径重复**（该布局的字段对照整体跳过，不猜）。
+
+### 退出码
+
+| 退出码 | 含义 |
+|---|---|
+| 0 | 报告已生成，所有受影响区间均兼容（`compatible`） |
+| 1 | 报告已生成，存在破坏兼容的变更（`incompatible`） |
+| 2 | 存在问题使比较无法完整（`unverifiable`），或输出目录已存在 |
+
+### 场景演示
+
+`examples/impact/` 用人工构造的两版布局演示全部口径，期望值在
+`expected_results.py` 中**手工**逐字段、逐日期区间写出，不来自程序输出：
+
+```bash
+python3 examples/impact/run_scenarios.py   # 构造场景 -> 跑 CLI -> 对照手工期望
+```
+
+覆盖：尾部字段因前方插入字节而位移、同名字段改小数位（字节数不变）、字段
+移除、新增 REDEFINES 视图、另一发送方生效区间完全不受影响、仅填充 FILLER
++ 新视图的兼容演进、同名字段换分组（按移除+新增处理）、清单区间重叠、
+区间空洞、缺少旧版本、Copybook 缺失、字段路径重复、版本号复用，以及输出
+目录已存在时拒绝覆盖。
+
 ## 测试
 
 ```bash
@@ -277,6 +366,10 @@ python3 -m unittest discover -s tests -t . -v
 覆盖：字节宽度 vs 字符宽度（COMP-3 打包、非 UTF-8 字节）、EBCDIC 编解码
 与 codec 切换、符号穿孔与隐式小数（zoned + COMP-3）、REDEFINES 三种选择
 策略与视图容错、按日期切换布局版本、截断/超长行、坏行隔离后的行号稳定
-性、绝对字节偏移、按偏移定位与隔离导出；以及交接校验的证据归并完整性、
+性、绝对字节偏移、按偏移定位与隔离导出；交接校验的证据归并完整性、
 五种控制记录状态机、批内/文件级拒收边界、不可判定数量、SQLite 磁盘暂存与
-有界内存、交付目录安全、CLI 三档退出码。
+有界内存、交付目录安全、CLI 三档退出码；以及影响报告的布局展开（分组
+路径、视图簇、重复路径检测）、字段分类（位移 vs 解释变化、FILLER 填充、
+codec 仅影响 DISPLAY）、日期分段（闭区间边界、多次切换、开放区间）、
+各类清单问题（重叠/空洞/缺旧版本/缺 Copybook/路径重复/版本复用）与
+输出目录防覆盖。

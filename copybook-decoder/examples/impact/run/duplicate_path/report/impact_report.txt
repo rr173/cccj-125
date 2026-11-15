@@ -1,0 +1,27 @@
+布局变更影响报告 / Layout Change Impact Report
+==============================================
+旧清单 (old manifest): /workspace/copybook-decoder/examples/impact/run/scenarios/duplicate_path/old/manifest.json
+新清单 (new manifest): /workspace/copybook-decoder/examples/impact/run/scenarios/duplicate_path/new/manifest.json
+
+总体结论 (overall conclusion): unverifiable
+  存在阻碍完整比较的问题; 本报告不是完整的兼容证明, 请先解决下方列出的问题。
+
+发送方 BANKA — 状态: unverifiable
+  copybook ACCT:
+    受影响日期区间 (布局版本发生变化):
+      [2024-09-01 .. 开放]  v1 -> v2  结论: unverifiable
+    不受影响 (两侧选择同一版本且布局一致):
+      [2024-01-01 .. 2024-08-31]  v1
+    适用区间: [2024-09-01 .. 开放]
+    字段对照: ACCT v1 (old manifest)  ->  ACCT v2 (new manifest)
+    结论: unverifiable
+    记录长度: 50 -> 18 字节 (-32)，构成:
+    备注: duplicate field paths make the layout untrustworthy; field comparison skipped
+
+问题列表 (2):
+  [duplicate_field_path] 来源=new_manifest sender=BANKA copybook=ACCT
+      field path ACCT-RECORD/GRP-A is declared 2 times in new layout ACCT v2 (level 5 at byte 10 (group), level 5 at byte 12 (group)); path-based matching is ambiguous
+  [duplicate_field_path] 来源=new_manifest sender=BANKA copybook=ACCT
+      field path ACCT-RECORD/GRP-A/CODE is declared 2 times in new layout ACCT v2 (level 10 at byte 10 (elementary), level 10 at byte 12 (elementary)); path-based matching is ambiguous
+
+说明: 字节区间为半开区间 [start, end); 生效日期为闭区间, '开放' 表示无 effective_to 上限。REDEFINES 视图是同一字节的互斥解释, 不同时占用存储。

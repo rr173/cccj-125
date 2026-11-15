@@ -1,0 +1,23 @@
+布局变更影响报告 / Layout Change Impact Report
+==============================================
+旧清单 (old manifest): /workspace/copybook-decoder/examples/impact/run/scenarios/nobaseline/old/manifest.json
+新清单 (new manifest): /workspace/copybook-decoder/examples/impact/run/scenarios/nobaseline/new/manifest.json
+
+总体结论 (overall conclusion): unverifiable
+  存在阻碍完整比较的问题; 本报告不是完整的兼容证明, 请先解决下方列出的问题。
+
+发送方 BANKA — 状态: unaffected
+  copybook ACCT:
+    不受影响 (两侧选择同一版本且布局一致):
+      [2024-01-01 .. 开放]  v1
+
+发送方 BANKC — 状态: unverifiable
+  copybook CARD:
+    无法判定 (见问题列表):
+      [2024-01-01 .. 开放]  原因: no_old_baseline
+
+问题列表 (1):
+  [no_old_baseline] 来源=old_manifest sender=BANKC copybook=CARD 日期 [2024-01-01 .. 开放]
+      new manifest selects CARD v1 for sender=BANKC on [2024-01-01 .. 开放], but the old manifest has no layout at all for these dates; there is no baseline to prove compatibility against
+
+说明: 字节区间为半开区间 [start, end); 生效日期为闭区间, '开放' 表示无 effective_to 上限。REDEFINES 视图是同一字节的互斥解释, 不同时占用存储。

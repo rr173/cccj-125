@@ -1,4 +1,5 @@
-"""Command line interface: decode data files and audit batch handoffs."""
+"""Command line interface: decode data files, audit batch handoffs, and
+report the impact of layout changes between two receiving manifests."""
 
 from __future__ import annotations
 
@@ -10,6 +11,8 @@ from pathlib import Path
 from .audit import (AuditConfig, AuditConfigError, AuditInputError,
                     BUSINESS_REJECTED, run_audit)
 from .errors import CopybookError
+from .impact import (COMPATIBLE, INCOMPATIBLE, ImpactError,
+                     run_impact_report)
 from .manifest import Manifest
 from .pipeline import decode_file
 
@@ -17,6 +20,11 @@ from .pipeline import decode_file
 EXIT_OK = 0                 # structure valid, every batch accepted
 EXIT_BUSINESS_REJECT = 1   # audited; at least one batch/file is refused
 EXIT_CANNOT_VALIDATE = 2   # input evidence or configuration is unusable
+
+# Exit codes for the impact subcommand.
+EXIT_IMPACT_COMPATIBLE = 0     # every affected date range stays compatible
+EXIT_IMPACT_INCOMPATIBLE = 1   # report written; breaking changes found
+EXIT_IMPACT_UNVERIFIABLE = 2   # problems prevent a complete comparison
 
 
 def main(argv=None) -> int:
@@ -60,10 +68,24 @@ def main(argv=None) -> int:
                           "unique subdirectory created for this run is "
                           "cleaned up")
 
+    imp = sub.add_parser(
+        "impact",
+        help="compare two receiving manifests and report which senders "
+             "and dates a layout change impacts (no data files are read)")
+    imp.add_argument("--old-manifest", required=True,
+                     help="manifest JSON currently in production")
+    imp.add_argument("--new-manifest", required=True,
+                     help="candidate manifest JSON introducing the new "
+                          "copybook version")
+    imp.add_argument("--out-dir", required=True,
+                     help="new report directory (must not exist yet)")
+
     args = parser.parse_args(argv)
     if args.command == "decode":
         return _run_decode(args)
-    return _run_audit(args)
+    if args.command == "audit":
+        return _run_audit(args)
+    return _run_impact(args)
 
 
 def _run_decode(args) -> int:
@@ -126,6 +148,29 @@ def _run_audit(args) -> int:
     if report["conclusion"] == BUSINESS_REJECTED:
         return EXIT_BUSINESS_REJECT
     return EXIT_OK
+
+
+def _run_impact(args) -> int:
+    try:
+        summary = run_impact_report(args.old_manifest, args.new_manifest,
+                                    args.out_dir)
+    except ImpactError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_IMPACT_UNVERIFIABLE
+
+    print(f"conclusion  : {summary['conclusion']}")
+    print(f"problems    : {summary['problem_count']}")
+    print(f"senders     : {summary['sender_count']} sender(s), "
+          f"{summary['affected_range_count']} affected date range(s), "
+          f"{summary['incompatible_comparison_count']} incompatible "
+          "layout comparison(s)")
+    print(f"report      : {args.out_dir}/{summary['report_file']}")
+    print(f"field diff  : {args.out_dir}/{summary['diff_file']}")
+    if summary["conclusion"] == COMPATIBLE:
+        return EXIT_IMPACT_COMPATIBLE
+    if summary["conclusion"] == INCOMPATIBLE:
+        return EXIT_IMPACT_INCOMPATIBLE
+    return EXIT_IMPACT_UNVERIFIABLE
 
 
 if __name__ == "__main__":
